@@ -16,7 +16,7 @@ const { Search } = Input;
 
 const commonMenuItems = [
   { key: '/home', icon: <HomeOutlined />, label: '首页' },
-  { key: '/cultural-heritage', icon: <HistoryOutlined />, label: '文化遗产' },
+  { key: '/travel-ai', icon: <HistoryOutlined />, label: '智慧旅游' },
   { key: '/cultural-resources', icon: <BookFilled />, label: '资源库' },
   { key: '/cultural-projects', icon: <ProjectOutlined />, label: '文旅项目' },
   { key: '/announcements', icon: <NotificationOutlined />, label: '平台公告' },

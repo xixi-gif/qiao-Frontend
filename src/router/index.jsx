@@ -6,6 +6,8 @@ import ForgotPasswordPage from '../pages/ForgetpasswordPage/ForgetpasswordPage';
 import VisitorProfile from '../pages/VisitorProfilePage/VisitorProfilePage';
 import MerchantProfile from '../pages/MerchantProfilePage/MerchantProfilePage';
 import AdminProfile from '../pages/AdminProfilePage/AdminProfilePage';
+import TravelAIPage from '../pages/TravelAIPage/TravelAIPage';
+
 
 const AppRoutes = () => {
   return (
@@ -18,6 +20,7 @@ const AppRoutes = () => {
       <Route path="/visitor/profile" element={<VisitorProfile />} />
       <Route path="/merchant/profile" element={<MerchantProfile />} />
       <Route path="/admin/profile" element={<AdminProfile />} />
+      <Route path="/travel-ai" element={<TravelAIPage />} />
     </Routes>
   );
 };

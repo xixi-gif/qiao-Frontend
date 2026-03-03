@@ -6,6 +6,7 @@ import zhCN from 'antd/locale/zh_CN';
 import 'antd/dist/reset.css';
 import App from './App';
 import './assets/styles/global.less';
+
 import './index.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
