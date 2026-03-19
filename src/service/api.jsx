@@ -44,4 +44,46 @@ const authApi = {
   updateProfile: (data) => service.put('/auth/profile', data)
 };
 
-export default { authApi };
+const plannerApi = {
+  getAllThemes: () => service.get('/v1/planner/themes'),
+  getResourcesByTheme: (themeId) => service.get(`/v1/planner/theme-resources/${themeId}`),
+  planRoute: (data) => service.post('/v1/planner/plan', data),
+  evaluateRoute: (data) => service.post('/v1/planner/evaluate', data),
+};
+
+const announcementApi = {
+  getList: (params) => {
+   
+    const skip = Number.isNaN(Number(params.skip)) ? 0 : Number(params.skip);
+    const limit = Number.isNaN(Number(params.limit)) ? 10 : Number(params.limit);
+
+    return service.get('/announcements', {
+      params: { skip, limit }
+    });
+  },
+  update: (id) => service.put(`/announcements/${id}`),
+  getDetail: (id) => service.get(`/announcements/${id}`),
+  publish: (data) => service.post('/announcements', data),
+  delete: (id) => service.delete(`/announcements/${id}`),
+  uploadFile: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axios({
+      url: `${service.defaults.baseURL}/announcements/upload`,
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      timeout: 10000,
+      withCredentials: true
+    });
+  }
+};
+
+export default { 
+  authApi, 
+  plannerApi,
+  announcementApi
+};

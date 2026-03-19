@@ -6,7 +6,8 @@ import {
   MenuOutlined, BarChartOutlined, ReconciliationOutlined, 
   CommentOutlined, ProjectOutlined, QuestionCircleOutlined,
   HistoryOutlined, BookFilled, BookOutlined, CompassOutlined,
-  UserOutlined, ShoppingOutlined, CrownOutlined, SearchOutlined
+  UserOutlined, ShoppingOutlined, CrownOutlined, SearchOutlined,
+  EllipsisOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../../src/service/api';
@@ -37,7 +38,8 @@ const roleSpecificItems = {
     { key: '/merchant/shop-setting', icon: <SettingOutlined />, label: '店铺设置' }
   ],
   admin: [
-    { key: '/admin/announcement-publish', icon: <NotificationOutlined />, label: '发布公告' },
+    { key: '/admin/announcement-publish', icon: <NotificationOutlined />, label: '公告发布' },
+    { key: '/admin/page-display-settings', icon: <SettingOutlined />, label: '页面展示设置' },
     { key: '/admin/manage-users', icon: <UsergroupAddOutlined />, label: '用户管理' },
     { key: '/admin/resources-manage', icon: <ReconciliationOutlined />, label: '资源管理' },
     { key: '/admin/comments-manage', icon: <CommentOutlined />, label: '评论管理' },
@@ -192,38 +194,21 @@ const Navbar = ({ currentUser }) => {
     const items = [...commonMenuItems];
     
     if (specificItems.length > 0) {
-      if (specificItems.length === 1) {
-        items.push(specificItems[0]);
-      } else {
-        const dropdownMenu = (
-          <Menu>
-            {specificItems.map(item => (
-              <Menu.Item 
-                key={item.key} 
-                icon={item.icon}
-                onClick={() => navigate(item.key)}
-              >
-                {item.label}
-              </Menu.Item>
-            ))}
-          </Menu>
-        );
-        
-        items.push({
-          key: 'more-actions',
-          label: (
-            <div style={{ cursor: 'pointer' }}>
-              <MenuOutlined style={{ fontSize: 16 }} />
-            </div>
-          ),
-          onClick: () => {}
-        });
-      }
+      items.push({
+        key: 'role-specific',
+        icon: <EllipsisOutlined style={{ fontSize: 16 }} />,
+        children: specificItems.map(item => ({
+          key: item.key,
+          icon: item.icon,
+          label: item.label,
+          onClick: () => navigate(item.key)
+        }))
+      });
     }
     
     return items.map(item => ({
       ...item,
-      onClick: item.key !== 'more-actions' ? () => navigate(item.key) : undefined
+      onClick: !item.children ? () => navigate(item.key) : undefined
     }));
   };
 
@@ -264,8 +249,8 @@ const Navbar = ({ currentUser }) => {
           alignItems: 'center', 
           flexShrink: 0
         }}>
-          <h1 style={{ fontSize: 20, margin: 0, color: '#1890ff' }}>
-            文旅资源展示平台
+          <h1 style={{ fontSize: 20, margin: 0, color: '#8e2803' }}>
+            南侨遗梦
           </h1>
         </div>
 
@@ -363,6 +348,7 @@ const Navbar = ({ currentUser }) => {
         onClose={() => setDrawerVisible(false)}
         visible={drawerVisible}
         bodyStyle={{ padding: 0 }}
+        size="large"
         width={260}
       >
         <Menu

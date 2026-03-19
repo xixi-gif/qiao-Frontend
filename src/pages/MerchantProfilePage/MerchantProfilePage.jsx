@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Card, Avatar, Form, Input, Button, Space, message, Typography, Row, Col, Table, Statistic } from 'antd';
-import { UserOutlined, EditOutlined, SaveOutlined, PhoneOutlined, ShopOutlined, UploadOutlined, BarChartOutlined } from '@ant-design/icons';
+import { UserOutlined, EditOutlined, SaveOutlined, PhoneOutlined, ShopOutlined, UploadOutlined, BarChartOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../../service/api';
 
@@ -29,6 +29,23 @@ const MerchantProfile = () => {
   const [token, setToken] = useState(localStorage.getItem('accessToken'));
   const isFirstLoad = useRef(true);
   const isUserInfoFetched = useRef(false);
+
+  // 退出登录函数
+  const handleLogout = () => {
+    // 清除本地存储的登录信息
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('username');
+    localStorage.removeItem('user_role');
+    
+    // 更新状态
+    setToken(null);
+    setUserInfo(null);
+    
+    // 提示并跳转登录页
+    message.success('退出登录成功');
+    navigate('/login');
+  };
 
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -141,9 +158,21 @@ const MerchantProfile = () => {
     <Layout style={{ minHeight: '100vh', background: '#f5f5f5' }}>
       <Content style={{ padding: '24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <Title level={2} style={{ marginBottom: '24px' }}>
-            商家个人中心
-          </Title>
+          {/* 标题栏 - 新增退出登录按钮 */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <Title level={2} style={{ margin: 0 }}>
+              商家个人中心
+            </Title>
+            <Button 
+              type="default" 
+              danger 
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              style={{ height: '40px' }}
+            >
+              退出登录
+            </Button>
+          </div>
           
           <Card 
             title="商家基本信息" 
