@@ -24,6 +24,7 @@ const TravelAIPage = () => {
   const [planResult, setPlanResult] = useState(null);
   const [loadingThemes, setLoadingThemes] = useState(false);
   const [loadingResources, setLoadingResources] = useState(false);
+  // 新增：规划路径加载状态
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [error, setError] = useState('');
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -32,9 +33,9 @@ const TravelAIPage = () => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
+  const polylineRef = useRef(null);
   const infoWindowsRef = useRef([]);
   const planMarkersRef = useRef([]);
-  const routeLinesRef = useRef([]);
 
   useEffect(() => {
     loadThemes();
@@ -91,39 +92,31 @@ const TravelAIPage = () => {
 
   const closeAllInfoWindows = () => {
     infoWindowsRef.current.forEach(win => {
-      try { win.close(); } catch (e) {}
+      try {
+        win.close();
+      } catch (e) {}
     });
     infoWindowsRef.current = [];
   };
 
-  const clearAllOverlays = () => {
+  useEffect(() => {
+    if (!mapInstance.current || !resources.length || !mapLoaded) return;
+    
     markersRef.current.forEach(m => {
       try { mapInstance.current.removeOverlay(m); } catch (e) {}
     });
+    closeAllInfoWindows();
     markersRef.current = [];
 
-    planMarkersRef.current.forEach(m => {
-      try { mapInstance.current.removeOverlay(m); } catch (e) {}
-    });
-    planMarkersRef.current = [];
-
-    routeLinesRef.current.forEach(line => {
-      try { mapInstance.current.removeOverlay(line); } catch (e) {}
-    });
-    routeLinesRef.current = [];
-
-    closeAllInfoWindows();
-  };
-
-  const drawResourceMarkers = () => {
     resources.forEach(r => {
+      // 兼容两种经纬度字段
       const lon = r.longitude || r.lon_parsed;
       const lat = r.latitude || r.lat_parsed;
       if (!lon || !lat) return;
-
+      
       const point = new window.BMapGL.Point(lon, lat);
       const marker = new window.BMapGL.Marker(point);
-
+      
       const iconSize = new window.BMapGL.Size(24, 36);
       const redIcon = new window.BMapGL.Icon('https://img.icons8.com/color/48/ff0000/marker.png', iconSize);
       const blueIcon = new window.BMapGL.Icon('https://img.icons8.com/color/48/0000ff/marker.png', iconSize);
@@ -167,14 +160,16 @@ const TravelAIPage = () => {
         closeAllInfoWindows();
         mapInstance.current.openInfoWindow(infoWindow, point);
       });
-
+      
       marker.addEventListener('mouseout', () => {
         setTimeout(() => {
           const activeHover = document.querySelector(`[onclick*="select-start-${r.uid}"]:hover`);
-          if (!activeHover) infoWindow.close();
+          if (!activeHover) {
+            infoWindow.close();
+          }
         }, 200);
       });
-
+      
       marker.addEventListener('click', () => {
         handleSelectStart(r.uid);
         infoWindow.close();
@@ -194,30 +189,49 @@ const TravelAIPage = () => {
       const points = markersRef.current.map(m => m.getPosition());
       mapInstance.current.setViewport(points);
     }
-  };
+  }, [resources, selectedStartId, mapLoaded]);
 
+  // 修复：使用 lon_parsed/lat_parsed 展示规划点
   useEffect(() => {
-    if (!mapInstance.current || !mapLoaded) return;
-    clearAllOverlays();
-    if (!planResult) {
-      drawResourceMarkers();
+    if (!mapInstance.current || !planResult?.route || !mapLoaded) {
+      if (polylineRef.current) {
+        try { mapInstance.current.removeOverlay(polylineRef.current); } catch (e) {}
+        polylineRef.current = null;
+      }
+      planMarkersRef.current.forEach(m => {
+        try { mapInstance.current.removeOverlay(m); } catch (e) {}
+      });
+      planMarkersRef.current = [];
+      return;
     }
-  }, [resources, selectedStartId, planResult, mapLoaded]);
 
-  useEffect(() => {
-    if (!mapInstance.current || !planResult?.route || !mapLoaded) return;
+    if (polylineRef.current) mapInstance.current.removeOverlay(polylineRef.current);
+    planMarkersRef.current.forEach(m => {
+      try { mapInstance.current.removeOverlay(m); } catch (e) {}
+    });
+    planMarkersRef.current = [];
 
-    clearAllOverlays();
-
+    // 1. 绘制规划路线（使用 lon_parsed/lat_parsed）
     const routePoints = planResult.route.map(p => new window.BMapGL.Point(p.lon_parsed, p.lat_parsed));
+    const polyline = new window.BMapGL.Polyline(routePoints, {
+      strokeColor: '#1890ff',
+      strokeWeight: 4,
+      strokeOpacity: 0.8
+    });
+    mapInstance.current.addOverlay(polyline);
+    polylineRef.current = polyline;
 
+    // 2. 为每个规划点添加绿色标记+数字序号
     planResult.route.forEach((item, index) => {
+      if (!item.lon_parsed || !item.lat_parsed) return;
+      
       const point = new window.BMapGL.Point(item.lon_parsed, item.lat_parsed);
       const iconSize = new window.BMapGL.Size(24, 36);
       const greenIcon = new window.BMapGL.Icon('https://img.icons8.com/color/48/00ff00/marker.png', iconSize);
       const marker = new window.BMapGL.Marker(point);
       marker.setIcon(greenIcon);
 
+      // 添加数字标签
       const label = new window.BMapGL.Label(`${index + 1}`, {
         position: point,
         offset: new window.BMapGL.Size(10, -10)
@@ -234,50 +248,22 @@ const TravelAIPage = () => {
         border: 'none'
       });
 
+      // 点击规划点设为起点
       marker.addEventListener('click', () => {
         handleSelectStart(item.uid);
       });
 
+      // 添加到地图
       mapInstance.current.addOverlay(marker);
       mapInstance.current.addOverlay(label);
+      
+      // 保存引用
       planMarkersRef.current.push(marker);
       planMarkersRef.current.push(label);
     });
 
-    const drawRoadRoute = (startPoint, endPoint) => {
-      const driving = new window.BMapGL.DrivingRoute(mapInstance.current, {
-        renderOptions: {
-          autoViewport: false,
-          polylineOptions: {
-            strokeColor: '#1890ff',
-            strokeWeight: 4,
-            strokeOpacity: 0.8
-          }
-        },
-        onSearchComplete: (results) => {
-          if (driving.getStatus() === window.BMAP_STATUS_SUCCESS) {
-            const plan = results.getPlan(0);
-            const route = plan.getRoute(0);
-            const path = route.getPath();
-            const polyline = new window.BMapGL.Polyline(path, {
-              strokeColor: '#1890ff',
-              strokeWeight: 4,
-              strokeOpacity: 0.8
-            });
-            mapInstance.current.addOverlay(polyline);
-            routeLinesRef.current.push(polyline);
-          }
-        }
-      });
-      driving.search(startPoint, endPoint);
-    };
-
-    for (let i = 0; i < routePoints.length - 1; i++) {
-      drawRoadRoute(routePoints[i], routePoints[i + 1]);
-    }
-
+    // 调整地图视野
     mapInstance.current.setViewport(routePoints);
-
   }, [planResult, mapLoaded]);
 
   const loadThemes = async () => {
@@ -305,21 +291,24 @@ const TravelAIPage = () => {
     }
   };
 
+  // 新增：添加加载动画
   const handlePlan = async () => {
     try {
       const values = await form.validateFields();
-      setLoadingPlan(true);
+      setLoadingPlan(true); // 开始加载
       setError('');
+      
       const res = await api.plannerApi.planRoute({
         theme_id: selectedTheme,
         start_uid: values.start_uid,
         num_points: values.num_points
       });
+      
       setPlanResult(res.data);
     } catch (err) {
-      setError('规划失败');
+      setError('规划失败：' + (err.message || '未知错误'));
     } finally {
-      setLoadingPlan(false);
+      setLoadingPlan(false); // 结束加载
     }
   };
 
@@ -386,6 +375,7 @@ const TravelAIPage = () => {
               <InputNumber min={3} max={10} style={{ width: '100%' }} />
             </Form.Item>
             <Form.Item>
+              {/* 按钮添加加载动画 */}
               <Button type="primary" onClick={handlePlan} block loading={loadingPlan}>
                 生成最优路径
               </Button>
@@ -393,6 +383,7 @@ const TravelAIPage = () => {
           </Form>
         </Card>
 
+        {/* 规划结果也添加加载动画 */}
         {loadingPlan ? (
           <div style={{ textAlign: 'center', padding: '50px 0' }}>
             <Spin size="large" tip="正在生成最优路径..." />
