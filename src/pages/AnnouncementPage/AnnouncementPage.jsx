@@ -1,283 +1,134 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Layout, Card, List, Button, Space, Typography, 
-  Tag, Popconfirm, message, Row, Col, Spin, Empty
-} from 'antd';
-import { 
-  DeleteOutlined, EyeOutlined, PlusOutlined, ReloadOutlined
-} from '@ant-design/icons';
+import { Layout, Table, Button, Space, Typography, Tag, Popconfirm, message, Card } from 'antd';
+import { DeleteOutlined, EyeOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../../service/api';
 import Navbar from '../../../public/Nav/nav';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title } = Typography;
 const { Content } = Layout;
 
 const AnnouncementList = () => {
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
-  const [current, setCurrent] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [currentUser, setCurrentUser] = useState({ role: 'user' });
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // 强制实时刷新用户信息
-  const loadUserInfo = () => {
+  const fetchUserRole = async () => {
     try {
-      const userStr = localStorage.getItem('user');
-      const user = userStr ? JSON.parse(userStr) : { role: 'user' };
-      setCurrentUser(user);
-    } catch (e) {
-      setCurrentUser({ role: 'user' });
+      const res = await api.authApi.getProfile();
+      setIsAdmin(res.data?.role === 'admin');
+    } catch {
+      setIsAdmin(false);
     }
   };
-
-  // 多重监听确保实时更新
-  useEffect(() => {
-    // 初始加载
-    loadUserInfo();
-
-    // 监听storage变化
-    const handleStorage = () => {
-      loadUserInfo();
-    };
-    window.addEventListener('storage', handleStorage);
-    
-    // 额外监听：定时刷新（兜底方案）
-    const timer = setInterval(() => {
-      loadUserInfo();
-    }, 1000);
-
-    // 组件卸载清理
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      clearInterval(timer);
-    };
-  }, []);
 
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const pageNum = Number.isNaN(Number(current)) ? 1 : Number(current);
-      const sizeNum = Number.isNaN(Number(pageSize)) ? 10 : Number(pageSize);
-      const skip = Math.max((pageNum - 1) * sizeNum, 0);
-      const limit = Math.max(sizeNum, 1);
-
-      const response = await api.announcementApi.getList({
-        skip: skip,
-        limit: limit
-      });
-
-      if (response?.data?.success && response?.data?.data) {
-        setAnnouncements(response.data.data.items || []);
-        setTotal(response.data.data.total || 0);
+      const res = await api.announcementApi.getList({ skip: 0, limit: 100 });
+      if (res?.data?.success && res?.data?.data) {
+        setAnnouncements(res.data.data.items || []);
       } else {
         setAnnouncements([]);
-        setTotal(0);
       }
-    } catch (error) {
-      console.error(error);
-      message.error(error.response?.data?.detail || '获取公告列表失败');
+    } catch {
+      message.error('获取公告失败');
       setAnnouncements([]);
-      setTotal(0);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    fetchUserRole();
     fetchAnnouncements();
-  }, [current, pageSize]);
+  }, []);
 
-  const handlePageChange = (newPage, newSize) => {
-    setCurrent(Number.isNaN(Number(newPage)) ? 1 : Number(newPage));
-    setPageSize(Number.isNaN(Number(newSize)) ? 10 : Number(newSize));
-  };
-
-  const handleSizeChange = (_, newSize) => {
-    setCurrent(1);
-    setPageSize(Number.isNaN(Number(newSize)) ? 10 : Number(newSize));
-  };
-
-  const handleViewDetail = async (id) => {
-    try {
-      const response = await api.announcementApi.getDetail(id);
-      if (response.data.success) {
-        navigate(`/announcements/detail/${id}`, { state: { data: response.data.data } });
-      } else {
-        message.error('获取公告详情失败');
-      }
-    } catch (error) {
-      console.error(error);
-      message.error(error.response?.data?.detail || '获取公告详情失败');
-    }
+  const handleViewDetail = (id) => {
+    navigate(`/announcements/detail/${id}`);
   };
 
   const handleDelete = async (id) => {
     try {
-      setLoading(true);
-      const response = await api.announcementApi.delete(id);
-      
-      if (response.data.success) {
-        message.success('公告删除成功！');
-        fetchAnnouncements();
-      } else {
-        message.error('公告删除失败');
-      }
-    } catch (error) {
-      console.error(error);
-      message.error(error.response?.data?.detail || '公告删除失败');
-    } finally {
-      setLoading(false);
+      await api.announcementApi.delete(id);
+      message.success('删除成功');
+      fetchAnnouncements();
+    } catch {
+      message.error('删除失败');
     }
   };
 
-  const handleAddAnnouncement = () => {
-    navigate('/admin/announcement-publish');
-  };
-
-  const handleRefresh = () => {
-    loadUserInfo();
-    fetchAnnouncements();
-  };
-
-  // 实时计算管理员状态
-  const isAdmin = currentUser.role === 'admin';
+  const columns = [
+    {
+      title: '公告标题',
+      dataIndex: 'title',
+      key: 'title',
+    },
+    {
+      title: '发布时间',
+      dataIndex: 'created_at',
+      key: 'created_at',
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      render: (s) => (
+        <Tag color={s === 'published' ? 'green' : 'orange'}>
+          {s === 'published' ? '已发布' : '草稿'}
+        </Tag>
+      ),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      render: (_, record) => (
+        <Space>
+          <Button type="text" icon={<EyeOutlined />} onClick={() => handleViewDetail(record.id)}>
+            查看
+          </Button>
+          {isAdmin && (
+            <Popconfirm title="确定删除？" onConfirm={() => handleDelete(record.id)} okText="确定" cancelText="取消">
+              <Button type="text" danger icon={<DeleteOutlined />}>
+                删除
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
       <Navbar />
-      <Content style={{ padding: 24 }}>
-        <Card style={{ background: '#fff', borderRadius: 8, marginBottom: 24 }}>
-          <Row justify="space-between" align="middle">
-            <Col>
+      <Content style={{ padding: '24px 0' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', width: '90%' }}>
+          <Card style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Title level={2} style={{ margin: 0 }}>公告管理</Title>
-            </Col>
-            <Col>
               <Space>
-                <Button 
-                  icon={<ReloadOutlined />}
-                  onClick={handleRefresh}
-                >
-                  刷新
-                </Button>
+ 
                 {isAdmin && (
-                  <Button 
-                    type="primary" 
-                    icon={<PlusOutlined />}
-                    onClick={handleAddAnnouncement}
-                  >
-                    发布新公告
+                  <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/admin/announcement-publish')}>
+                    发布公告
                   </Button>
                 )}
               </Space>
-            </Col>
-          </Row>
-        </Card>
+            </div>
+          </Card>
 
-        <Spin spinning={loading} tip="加载中...">
-          <List
-            itemLayout="vertical"
-            size="large"
-            dataSource={announcements}
-            pagination={{
-              current: current,
-              pageSize: pageSize,
-              total: total,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total) => `共 ${total} 条`,
-              onChange: handlePageChange,
-              onShowSizeChange: handleSizeChange,
-              pageSizeOptions: ['10', '20', '50']
-            }}
-            renderItem={item => {
-              const actions = [];
-              
-              // 查看详情按钮（所有人可见）
-              actions.push(
-                <Button 
-                  type="text" 
-                  icon={<EyeOutlined />}
-                  onClick={() => handleViewDetail(item.id)}
-                  key={`view-${item.id}`}
-                >
-                  查看详情
-                </Button>
-              );
-
-              // 删除按钮（仅管理员可见）
-              if (isAdmin) {
-                actions.push(
-                  <Popconfirm
-                    title="确定删除该公告吗？"
-                    onConfirm={() => handleDelete(item.id)}
-                    okText="确定"
-                    cancelText="取消"
-                    disabled={loading}
-                    key={`delete-${item.id}`}
-                  >
-                    <Button 
-                      type="text" 
-                      danger 
-                      icon={<DeleteOutlined />}
-                    >
-                      删除
-                    </Button>
-                  </Popconfirm>
-                );
-              }
-
-              return (
-                <List.Item
-                  key={item.id}
-                  actions={actions}
-                  extra={
-                    <Tag color={item.status === 'published' ? 'green' : 'orange'}>
-                      {item.status === 'published' ? '已发布' : '草稿'}
-                    </Tag>
-                  }
-                >
-                  <List.Item.Meta
-                    title={
-                      <Space>
-                        <Text strong style={{ fontSize: 18 }}>{item.title}</Text>
-                      </Space>
-                    }
-                    description={
-                      <Space direction="vertical" size={8}>
-                        <Text type="secondary">发布时间：{item.created_at}</Text>
-                        <Text type="secondary">发布人ID：{item.creator_id}</Text>
-                      </Space>
-                    }
-                  />
-                  <Paragraph 
-                    ellipsis={{ rows: 2, expandable: false, symbol: '...' }}
-                    style={{ margin: '16px 0 0 0' }}
-                  >
-                    {item.content}
-                  </Paragraph>
-                  {item.attachments && item.attachments.length > 0 && (
-                    <Space style={{ marginTop: 8 }}>
-                      <Text type="secondary">附件：</Text>
-                      {item.attachments.map((file, index) => (
-                        <Tag key={`file-${item.id}-${index}`}>{file.name}</Tag>
-                      ))}
-                    </Space>
-                  )}
-                </List.Item>
-              );
-            }}
-            bordered
-            style={{ 
-              background: '#fff', 
-              borderRadius: 8,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-            }}
-            locale={{ emptyText: <Empty description="暂无公告数据" /> }}
-          />
-        </Spin>
+          <Card>
+            <Table
+              rowKey="id"
+              loading={loading}
+              columns={columns}
+              dataSource={announcements}
+              pagination={{ pageSize: 10 }}
+            />
+          </Card>
+        </div>
       </Content>
     </Layout>
   );

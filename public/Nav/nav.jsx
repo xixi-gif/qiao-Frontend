@@ -27,7 +27,8 @@ const commonMenuItems = [
 const roleSpecificItems = {
   visitor: [
     { key: '/visitor/collection', icon: <BookOutlined />, label: '我的收藏' },
-    { key: '/visitor/feedback', icon: <CommentOutlined />, label: '意见反馈' },
+    { key: '/visitor/Leavemessage', icon: <CommentOutlined />, label: '留言板' },
+    // { key: '/visitor/feedback', icon: <CommentOutlined />, label: '意见反馈' },
     { key: '/visitor/cultural-guide', icon: <CompassOutlined />, label: '文化导览' }
   ],
   merchant: [
@@ -44,6 +45,7 @@ const roleSpecificItems = {
     { key: '/admin/resources-manage', icon: <ReconciliationOutlined />, label: '资源管理' },
     { key: '/admin/comments-manage', icon: <CommentOutlined />, label: '评论管理' },
     { key: '/admin/projects-manage', icon: <ProjectOutlined />, label: '项目管理' },
+    { key: '/admin/checkins-manage', icon: <ProjectOutlined />, label: '打卡墙管理' },
     { key: '/admin/data-statistics', icon: <BarChartOutlined />, label: '平台数据' },
     { key: '/admin/system-settings', icon: <SettingOutlined />, label: '系统设置' }
   ]
@@ -156,10 +158,17 @@ const Navbar = ({ currentUser }) => {
   const username = token 
     ? (userInfo?.realName || userInfo?.username || localStorage.getItem('username') || '用户') 
     : '访客';
-  
-  const avatarProps = token && userInfo?.userAvatar 
+
+  // ==============================================
+  // 🔥 这里修复了头像显示！自动拼接地址 + 替换斜杠
+  // ==============================================
+  const avatarUrl = userInfo?.avatar 
+    ? `http://127.0.0.1:8090${userInfo.avatar.replace(/\\/g, '/')}` 
+    : null;
+
+  const avatarProps = token && avatarUrl
     ? { 
-        src: userInfo.userAvatar,
+        src: avatarUrl,
         fallback: roleIcons[role],
         alt: username 
       } 
