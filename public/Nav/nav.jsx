@@ -26,7 +26,7 @@ const commonMenuItems = [
 
 const roleSpecificItems = {
   visitor: [
-    { key: '/visitor/collection', icon: <BookOutlined />, label: '我的收藏' },
+    { key: '/visitor/collection', icon: <BookOutlined />, label: '我的资源' },
     { key: '/visitor/Leavemessage', icon: <CommentOutlined />, label: '留言板' },
     // { key: '/visitor/feedback', icon: <CommentOutlined />, label: '意见反馈' },
     { key: '/visitor/cultural-guide', icon: <CompassOutlined />, label: '文化导览' }

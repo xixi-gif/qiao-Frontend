@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Image, Tag, Descriptions, Button, message, Space, Typography, Divider, Avatar, List, Input, Popover } from 'antd';
-import { ArrowLeftOutlined, LikeOutlined, StarOutlined, MessageOutlined, UserOutlined, EyeOutlined, SmileOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Layout, Card, Image, Tag, Descriptions, Button, message, Space, Typography, Divider, Avatar, List, Input } from 'antd';
+import { ArrowLeftOutlined, LikeOutlined, StarOutlined, MessageOutlined, UserOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../service/api';
 import Navbar from '../../../public/Nav/nav';
+import EmojiPicker from '../../../public/EmojiPicker/EmojiPicker';
 
 const { Content } = Layout;
 const { Title } = Typography;
 const { TextArea } = Input;
-
-const EMOJIS = ['😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥸','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤩','🥳'];
 
 const CheckinDetail = () => {
   const { id } = useParams();
@@ -27,6 +26,7 @@ const CheckinDetail = () => {
   const [replyText, setReplyText] = useState('');
   const [replyToName, setReplyToName] = useState('');
   const [expandedMap, setExpandedMap] = useState({});
+  const [exists, setExists] = useState(true);
 
   const TARGET_TYPE = 'checkin';
 
@@ -39,9 +39,13 @@ const CheckinDetail = () => {
     try {
       setLoading(true);
       const res = await api.projectApi.getCheckinDetail(id);
+      if (!res.data || res.data.is_deleted) {
+        setExists(false);
+        return;
+      }
       setCheckin(res.data);
     } catch (err) {
-      message.error('加载失败');
+      setExists(false);
     } finally {
       setLoading(false);
     }
@@ -202,19 +206,7 @@ const CheckinDetail = () => {
             {replyId === rep.id && !rep.is_delete && (
               <div style={{ marginTop: 8 }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 4 }}>
-                  <Popover
-                    trigger="click"
-                    placement="bottomLeft"
-                    content={
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(10,1fr)", gap: 4, maxWidth: 260 }}>
-                        {EMOJIS.map(e => (
-                          <Button key={e} type="text" onClick={() => setReplyText(t => t + e)} style={{ fontSize: 16, padding: "2px" }}>{e}</Button>
-                        ))}
-                      </div>
-                    }
-                  >
-                    <Button type="text" icon={<SmileOutlined />} size="small" />
-                  </Popover>
+                  <EmojiPicker onSelect={(e) => setReplyText(t => t + e)} size="small" />
                   <TextArea
                     rows={3}
                     size="small"
@@ -233,6 +225,25 @@ const CheckinDetail = () => {
     );
   };
 
+  const contactAuthor = async () => {
+    if (!currentUserId) {
+      message.warning("请先登录");
+      return;
+    }
+    if (currentUserId === checkin.user_id) {
+      message.info("这是你自己的打卡");
+      return;
+    }
+    try {
+      const res = await api.chatApi.createConversation(currentUserId, checkin.user_id);
+      message.success("正在进入聊天...");
+      navigate(`/chat/${res.data.id}`);
+    } catch (e) {
+      console.error(e);
+      message.error("无法联系作者");
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchDetail();
@@ -244,6 +255,21 @@ const CheckinDetail = () => {
   }, [id]);
 
   const mainComments = comments.filter(c => !c.parent_id);
+
+  if (!exists) {
+    return (
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+        <Navbar />
+        <Content style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center', color: '#999' }}>
+            <DeleteOutlined style={{ fontSize: 60, marginBottom: 16 }} />
+            <Title level={5}>打卡已被删除</Title>
+            <Button onClick={() => navigate(-1)} style={{ marginTop: 16 }}>返回</Button>
+          </div>
+        </Content>
+      </Layout>
+    );
+  }
 
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
@@ -260,6 +286,15 @@ const CheckinDetail = () => {
                     <div style={{ fontSize: 16, fontWeight: 500 }}>{checkin.username}</div>
                     <div style={{ fontSize: 12, color: '#999' }}>{checkin.create_time}</div>
                   </div>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<MessageOutlined />}
+                    onClick={contactAuthor}
+                    style={{ marginLeft: 'auto' }}
+                  >
+                    联系作者
+                  </Button>
                 </div>
 
                 <Title level={4}>{checkin.title}</Title>
@@ -283,7 +318,7 @@ const CheckinDetail = () => {
                   <Button type={isFav ? "primary" : "default"} icon={<StarOutlined />} onClick={handleFavorite}>
                     收藏 {favCount}
                   </Button>
-                  <Button type={isLiked ? "primary" : "default"} icon={<LikeOutlined />} onClick={handleLike}>
+                  <Button type={isLiked ? "primary" : "primary"} icon={<LikeOutlined />} onClick={handleLike}>
                     点赞 {likeCount}
                   </Button>
                   <Button icon={<MessageOutlined />}>评论 {comments.length}</Button>
@@ -294,20 +329,7 @@ const CheckinDetail = () => {
                 <Title level={5}>评论区</Title>
 
                 <div style={{ marginBottom: 16, display: 'flex', gap: 4, alignItems: 'flex-start' }}>
-                  <Popover
-                    trigger="click"
-                    placement="bottomLeft"
-                    content={
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10,1fr)', gap: 4, maxWidth: 280 }}>
-                        {EMOJIS.map(e => (
-                          <Button key={e} type="text" onClick={() => setCommentText(t => t + e)} style={{ fontSize: 16, padding: '2px' }}>{e}</Button>
-                        ))}
-                      </div>
-                    }
-                  >
-                    <Button type="text" icon={<SmileOutlined />} />
-                  </Popover>
-
+                  <EmojiPicker onSelect={(e) => setCommentText(t => t + e)} />
                   <TextArea
                     rows={4}
                     placeholder="写下你的评论..."
@@ -345,19 +367,7 @@ const CheckinDetail = () => {
                             {replyId === item.id && !item.is_delete && (
                               <div style={{ marginTop: 8 }}>
                                 <div style={{ display: "flex", alignItems: "flex-start", gap: 4 }}>
-                                  <Popover
-                                    trigger="click"
-                                    placement="bottomLeft"
-                                    content={
-                                      <div style={{ display: "grid", gridTemplateColumns: "repeat(10,1fr)", gap: 4, maxWidth: 260 }}>
-                                        {EMOJIS.map(e => (
-                                          <Button key={e} type="text" onClick={() => setReplyText(t => t + e)} style={{ fontSize: 16, padding: "2px" }}>{e}</Button>
-                                        ))}
-                                      </div>
-                                    }
-                                  >
-                                    <Button type="text" icon={<SmileOutlined />} size="small" />
-                                  </Popover>
+                                  <EmojiPicker onSelect={(e) => setReplyText(t => t + e)} size="small" />
                                   <TextArea
                                     rows={3}
                                     size="small"

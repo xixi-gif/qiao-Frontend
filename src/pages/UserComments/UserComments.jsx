@@ -32,29 +32,21 @@ const UserComments = () => {
 
   const readMessage = (id) => {
     api.authApi.readMessage(id).then(() => {
-      setMessages(messages.map(m =>
-        m.msg_id === id ? { ...m, is_read: true } : m
+      setMessages(prev => prev.map(m =>
+        m.id === id ? { ...m, is_read: true } : m
       ));
     });
   };
 
   const readAll = () => {
     api.authApi.readAllMessages().then(() => {
-      setMessages(messages.map(m => ({ ...m, is_read: true })));
+      setMessages(prev => prev.map(m => ({ ...m, is_read: true })));
     });
   };
 
   const formatTime = (t) => new Date(t).toLocaleString('zh-CN');
 
-  const unreadCount = messages.filter(m => !m.is_read).length;
-
-  const toProject = (id) => {
-    if (id && id > 0) {
-      navigate(`/tour/detail/${id}`);
-    } else {
-      message.info('该项目已不存在');
-    }
-  };
+  const unreadCount = Array.isArray(messages) ? messages.filter(m => !m.is_read).length : 0;
 
   const toCommentTarget = (targetType, targetId) => {
     if (!targetId || targetId <= 0) {
@@ -119,30 +111,29 @@ const UserComments = () => {
 
               {loadingMessages ? (
                 <div style={{ padding: 40, textAlign: 'center' }}><Spin /></div>
-              ) : messages.length === 0 ? (
+              ) : !Array.isArray(messages) || messages.length === 0 ? (
                 <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>暂无消息</div>
               ) : (
                 messages.map((item, idx) => (
                   <div
                     key={idx}
-                    onClick={() => { toProject(item.project?.id); readMessage(item.msg_id); }}
+                    onClick={() => { toCommentTarget(item.msg_type, item.target_id); readMessage(item.id); }}
                     style={{ padding: '14px 0', cursor: 'pointer', borderBottom: idx < messages.length - 1 ? '1px solid #f0f0f0' : 'none' }}
                   >
                     <div style={{ display: 'flex', gap: 12 }}>
                       <Badge dot={!item.is_read} offset={[-5, 5]}>
-                        <Avatar src={item.reply_user?.avatar ? `${baseURL}${item.reply_user.avatar}` : null} size={40}>
-                          {item.reply_user?.username?.[0] || '用'}
+                        <Avatar src={item.user?.avatar ? `${baseURL}${item.user.avatar}` : null} size={40}>
+                          {item.user?.username?.[0] || '用'}
                         </Avatar>
                       </Badge>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 500 }}>{item.reply_user?.username || '用户'}</div>
-                        <div style={{ fontSize: 12, color: '#999' }}>回复了你的评论</div>
+                        <div style={{ fontWeight: 500 }}>{item.user?.username || '用户'}</div>
+                        <div style={{ fontSize: 12, color: '#999' }}>{item.msg_text}</div>
                         <div style={{ marginTop: 8, lineHeight: 1.5, background:'#f7f8fa', padding:8, borderRadius:6 }}>
-                          <div style={{fontSize:12, color:'#666'}}>我的评论：<span style={{ color: item.my_comment === '评论已删除' ? '#999' : '#666' }}>{item.my_comment}</span></div>
-                          <div style={{marginTop:4}}>对方回复：{item.his_reply}</div>
+                          {item.content}
                         </div>
                         <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
-                          来自：{item.project?.title || '项目已删除'}
+                          来自：{item.target_title || '内容已删除'}
                         </div>
                         <div style={{ fontSize: 12, color: '#ccc', marginTop: 4 }}>
                           {formatTime(item.created_at)}

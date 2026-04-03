@@ -29,7 +29,10 @@ import AddCheckin from '../pages/AddCheckinPage/AddCheckinPage';
 import UserCheckinsPage from '../pages/UserCheckinsPage/UserCheckinsPage';
 import AdminCheckinManage from '../pages/AdminCheckinManagePage/AdminCheckinManagePage';
 import CheckinDetail from '../pages/CheckinDetailPage/CheckinDetailPage';
-
+import MarkdownAdminPage from '../pages/MarkdownAdminPage/MarkdownAdminPage';
+import ChatPage from '../pages/ChatPage/ChatPage';
+import MarkdownViewerPage from '../pages/MarkdownViewerPage/MarkdownViewerPage';
+import MyFavoritePage from '../pages/MyFavoritePage/MyFavoritePage';
 
 const AppRoutes = () => {
   return (
@@ -65,6 +68,11 @@ const AppRoutes = () => {
       <Route path="/user/checkins" element={<UserCheckinsPage />} />
       <Route path="/admin/checkins-manage" element={<AdminCheckinManage />} />
       <Route path="/checkin/detail/:id" element={<CheckinDetail />} />
+      <Route path="/admin/resources-manage" element={<MarkdownAdminPage />} />
+      <Route path="/cultural-resources" element={<MarkdownViewerPage />} />
+      <Route path="/chat/:id?" element={<ChatPage />} />
+      <Route path="/visitor/collection" element={<MyFavoritePage />} />
+
     </Routes>
   );
 };

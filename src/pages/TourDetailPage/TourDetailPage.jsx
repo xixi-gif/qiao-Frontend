@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Card, Image, Tag, Descriptions, Button, Typography, Divider, Breadcrumb, List, Avatar, Input, message, Popover } from "antd";
-import { ArrowLeftOutlined, EyeOutlined, ShoppingCartOutlined, HomeOutlined, StarOutlined, LikeOutlined, MessageOutlined, SmileOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Layout, Card, Image, Tag, Descriptions, Button, Typography, Divider, Breadcrumb, List, Avatar, Input, message } from "antd";
+import { ArrowLeftOutlined, EyeOutlined, ShoppingCartOutlined, HomeOutlined, StarOutlined, LikeOutlined, MessageOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../../public/Nav/nav";
 import api from "../../service/api";
+import EmojiPicker from "../../../public/EmojiPicker/EmojiPicker";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -25,10 +26,9 @@ const TourDetailPage = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [expandedMap, setExpandedMap] = useState({});
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [exists, setExists] = useState(true);
 
   const TARGET_TYPE = "project";
-
-  const EMOJIS = ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😶‍🌫️', '😱', '😨', '😰', '😥', '😓', '🤗', '🤩', '🥳', '😎', '🥺', '😇'];
 
   const fixImg = (url) => {
     if (!url) return "";
@@ -195,17 +195,7 @@ const TourDetailPage = () => {
             {replyId === rep.id && !rep.is_delete && (
               <div style={{ marginTop: 8 }}>
                 <div style={{ display: "flex", gap: 4 }}>
-                  <Popover
-                    content={
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(10,1fr)", gap: 4 }}>
-                        {EMOJIS.map(e => (
-                          <Button key={e} type="text" onClick={() => setReplyText(t => t + e)}>{e}</Button>
-                        ))}
-                      </div>
-                    }
-                  >
-                    <Button type="text" icon={<SmileOutlined />} size="small" />
-                  </Popover>
+                  <EmojiPicker onSelect={(e) => setReplyText(t => t + e)} size="small" />
                   <TextArea
                     rows={2}
                     placeholder={`回复 @${replyToName}`}
@@ -228,9 +218,15 @@ const TourDetailPage = () => {
       setLoading(true);
       try {
         const res = await api.projectApi.getTourProjectDetail(id);
+        if (!res.data || res.data.is_deleted) {
+          setExists(false);
+          setLoading(false);
+          return;
+        }
         setProject(res.data);
         await api.projectApi.addProjectView(id);
       } catch (err) {
+        setExists(false);
       } finally {
         setLoading(false);
       }
@@ -248,24 +244,27 @@ const TourDetailPage = () => {
     loadComments();
   }, [id]);
 
+  if (!exists) {
+    return (
+      <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f9f9" }}>
+        <Navbar />
+        <Content style={{ padding: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", color: "#999" }}>
+            <DeleteOutlined style={{ fontSize: 60, marginBottom: 16 }} />
+            <Title level={5}>项目已被删除</Title>
+            <Button onClick={() => navigate(-1)} style={{ marginTop: 16 }}>返回</Button>
+          </div>
+        </Content>
+      </Layout>
+    );
+  }
+
   if (loading)
     return (
       <Layout style={{ minHeight: "100vh" }}>
         <Navbar />
         <Content style={{ padding: 24 }}>
           <Card loading style={{ maxWidth: 1000, margin: "0 auto" }} />
-        </Content>
-      </Layout>
-    );
-
-  if (!project)
-    return (
-      <Layout style={{ minHeight: "100vh" }}>
-        <Navbar />
-        <Content style={{ padding: 24 }}>
-          <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-            <Title level={4}>项目不存在或未上线</Title>
-          </div>
         </Content>
       </Layout>
     );
@@ -323,19 +322,7 @@ const TourDetailPage = () => {
             <Divider />
             <Title level={5}>用户评论</Title>
             <div style={{ marginBottom: 16, display: "flex", gap: 4, alignItems: "flex-start" }}>
-              <Popover
-                trigger="click"
-                placement="bottomLeft"
-                content={
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(10,1fr)", gap: 4 }}>
-                    {EMOJIS.map(e => (
-                      <Button key={e} type="text" onClick={() => setCommentText(t => t + e)}>{e}</Button>
-                    ))}
-                  </div>
-                }
-              >
-                <Button type="text" icon={<SmileOutlined />} />
-              </Popover>
+              <EmojiPicker onSelect={(e) => setCommentText(t => t + e)} />
               <TextArea
                 rows={4}
                 placeholder="写下你的评论..."
@@ -381,17 +368,7 @@ const TourDetailPage = () => {
                         {replyId === item.id && !item.is_delete && (
                           <div style={{ marginTop: 8 }}>
                             <div style={{ display: "flex", gap: 4 }}>
-                              <Popover
-                                content={
-                                  <div style={{ display: "grid", gridTemplateColumns: "repeat(10,1fr)", gap: 4 }}>
-                                    {EMOJIS.map(e => (
-                                      <Button key={e} type="text" onClick={() => setReplyText(t => t + e)}>{e}</Button>
-                                    ))}
-                                  </div>
-                                }
-                              >
-                                <Button type="text" icon={<SmileOutlined />} size="small" />
-                              </Popover>
+                              <EmojiPicker onSelect={(e) => setReplyText(t => t + e)} size="small" />
                               <TextArea
                                 rows={2}
                                 placeholder={`回复 @${replyToName}`}

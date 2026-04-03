@@ -134,4 +134,50 @@ const interactionApi = {
   adminDeleteComment:(id)=>service.delete(`/interact/admin/comment/${id}`)
 };
 
-export default {authApi,plannerApi,announcementApi,projectApi,userAdminApi,carouselApi,tagApi,categoryApi,interactionApi};
+const markdownApi = {
+  getList:(params)=>service.get('/markdown/list',{params}),
+  getDetail:(id)=>service.get(`/markdown/${id}`),
+  create:(data)=>service.post('/markdown/create',data),
+  update:(id,data)=>service.put(`/markdown/${id}`,data),
+  delete:(id)=>service.delete(`/markdown/${id}`),
+  uploadImage:(formData)=>service.post('/markdown/image',formData,{headers:{'Content-Type':'multipart/form-data'}}),
+  batchUpload:(formData)=>service.post('/markdown/batch-upload',formData,{headers:{'Content-Type':'multipart/form-data'}}),
+  toggleFavorite: (docId) => service.post(`/markdown/favorite/${docId}`),
+  getMyFavorites: () => service.get("/markdown/my/favorites"),
+  getMyFavoriteIds: () => service.get("/markdown/my/favorite-ids"),
+  getKnowledgeGraph: () => service.get("/graph") 
+};
+
+const chatApi = {
+  createConversation:(uid,mid)=>{
+    const fd=new FormData();
+    fd.append('user_id',uid);
+    fd.append('to_user_id',mid);
+    return service.post('/chat/conversation',fd);
+  },
+  getConversations:(uid)=>service.get(`/chat/conversations/${uid}`),
+  getConversation:(id)=>service.get(`/chat/conversation/${id}`),
+  getMessages:(cid)=>service.get(`/chat/conversation/${cid}/messages`),
+  sendMessage:(d)=>{
+    const fd=new FormData();
+    Object.keys(d).forEach(k=>d[k]!=null&&fd.append(k,d[k]));
+    return service.post('/chat/message',fd);
+  },
+  markRead:(cid, uid)=>service.put(`/chat/conversation/${cid}/read?user_id=${uid}`),
+  togglePin:(cid)=>service.put(`/chat/conversation/${cid}/pin`),
+  upload:(fd)=>service.post('/chat/upload',fd,{headers:{'Content-Type':'multipart/form-data'}})
+};
+
+export default {
+  authApi,
+  plannerApi,
+  announcementApi,
+  projectApi,
+  userAdminApi,
+  carouselApi,
+  tagApi,
+  categoryApi,
+  interactionApi,
+  markdownApi,
+  chatApi
+};

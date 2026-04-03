@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Card, Typography, Row, Col, Image, Button, Breadcrumb } from 'antd';
-import { HomeOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Layout, Card, Typography, Row, Col, Image, Button, Breadcrumb, Empty } from 'antd';
+import { HomeOutlined, ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../../service/api';
 import Navbar from '../../../public/Nav/nav';
@@ -25,6 +25,15 @@ const UserLikes = () => {
     }).catch(() => setLoading(false));
   }, []);
 
+  const goTo = (item) => {
+    if (!item.exists) return;
+    if (item.target_type === 'project') {
+      navigate(`/tour/detail/${item.target_id}`);
+    } else if (item.target_type === 'checkin') {
+      navigate(`/checkin/detail/${item.target_id}`);
+    }
+  };
+
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
       <Navbar />
@@ -44,25 +53,32 @@ const UserLikes = () => {
           {loading ? (
             <Card loading />
           ) : list.length === 0 ? (
-            <Typography.Text type="secondary">暂无点赞</Typography.Text>
+            <Empty description="暂无点赞" />
           ) : (
             <Row gutter={[16, 16]}>
               {list.map(item => (
-                <Col xs={8} sm={8} key={item.project_id}>
+                <Col xs={8} sm={8} key={item.target_id}>
                   <Card
                     hoverable
                     style={{ borderRadius: 10, height: '100%' }}
                     bodyStyle={{ padding: 12 }}
-                    onClick={() => navigate(`/tour/detail/${item.project_id}`)}
+                    onClick={() => goTo(item)}
                   >
-                    <Image
-                      height={140}
-                      width="100%"
-                      style={{ objectFit: 'cover', borderRadius: 6 }}
-                      src={fixImg(item.cover)}
-                      fallback="https://picsum.photos/id/1036/400/300"
-                    />
-                    <div style={{ fontSize: 14, marginTop: 10, fontWeight: 500 }}>
+                    {item.exists ? (
+                      <Image
+                        height={140}
+                        width="100%"
+                        style={{ objectFit: 'cover', borderRadius: 6 }}
+                        src={fixImg(item.cover)}
+                        fallback="https://picsum.photos/id/1036/400/300"
+                      />
+                    ) : (
+                      <div style={{ height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#999' }}>
+                        <DeleteOutlined style={{ fontSize: 24, marginBottom: 8 }} />
+                        <div style={{ fontSize: 12 }}>{item.title}</div>
+                      </div>
+                    )}
+                    <div style={{ fontSize: 14, marginTop: 10, fontWeight: 500, color: item.exists ? '#333' : '#999' }}>
                       {item.title}
                     </div>
                   </Card>
