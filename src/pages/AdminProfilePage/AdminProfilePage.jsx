@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Card, Avatar, Form, Input, Button, Space, message, Typography, Row, Col, Statistic, Table } from 'antd';
+import { Layout, Card, Avatar, Form, Input, Button, Space, message, Typography, Row, Col, Statistic } from 'antd';
 import { UserOutlined, EditOutlined, SaveOutlined, PhoneOutlined, CrownOutlined, UploadOutlined, UsergroupAddOutlined, BarChartOutlined, ShopOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../../service/api';
@@ -7,19 +7,6 @@ import Navbar from '../../../public/Nav/nav';
 
 const { Content } = Layout;
 const { Title } = Typography;
-
-const userColumns = [
-  { title: '用户名', dataIndex: 'username', key: 'username' },
-  { title: '手机号', dataIndex: 'phone', key: 'phone' },
-  { title: '角色', dataIndex: 'role', key: 'role' },
-  { title: '状态', dataIndex: 'status', key: 'status' },
-  { title: '操作', key: 'action', render: () => <Button type="primary" size="small">管理</Button> }
-];
-
-const userData = [
-  { key: '1', username: '游客123', phone: '13800138000', role: '访客', status: '正常' },
-  { key: '2', username: '侨乡文旅店', phone: '13900139000', role: '商家', status: '正常' }
-];
 
 const AdminProfile = () => {
   const navigate = useNavigate();
@@ -30,15 +17,35 @@ const AdminProfile = () => {
   const [avatarLoading, setAvatarLoading] = useState(false);
   const fileInputRef = useRef(null);
 
+  const [stats, setStats] = useState({
+    total_users: 0,
+    total_merchants: 0,
+    total_markdown: 0
+  });
+
   const storedToken = localStorage.getItem('accessToken');
   const storedUserInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
 
-  // 退出登录
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userInfo');
     message.success('已安全退出登录');
     navigate('/login');
+  };
+
+  const loadStats = async () => {
+    try {
+      const res = await api.adminApi.getStatistics({ period: 'month' });
+      if (res.data.code === 200) {
+        setStats({
+          total_users: res.data.data.total_users || 0,
+          total_merchants: res.data.data.total_merchants || 0,
+          total_markdown: res.data.data.total_markdown || 0
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -70,6 +77,7 @@ const AdminProfile = () => {
       }
     };
     fetchUserDetail();
+    loadStats();
   }, [storedToken, navigate, form]);
 
   const handleSave = async () => {
@@ -112,7 +120,6 @@ const AdminProfile = () => {
         message.success('头像上传成功');
       })
       .catch(err => {
-        console.log(err);
         message.error('头像上传失败');
       })
       .finally(() => {
@@ -141,15 +148,7 @@ const AdminProfile = () => {
             loading={loading}
             extra={
               <Space>
-                {/* 退出登录按钮 */}
-                <Button 
-                  danger 
-                  icon={<LogoutOutlined />} 
-                  onClick={handleLogout}
-                >
-                  退出登录
-                </Button>
-
+                <Button danger icon={<LogoutOutlined />} onClick={handleLogout}>退出登录</Button>
                 <Button
                   type={editable ? "primary" : "default"}
                   icon={editable ? <SaveOutlined /> : <EditOutlined />}
@@ -169,13 +168,7 @@ const AdminProfile = () => {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    style={{
-                      position: 'absolute',
-                      opacity: 0,
-                      width: 0,
-                      height: 0,
-                      overflow: 'hidden'
-                    }}
+                    style={{ position: 'absolute', opacity: 0, width: 0, height: 0, overflow: 'hidden' }}
                     accept="image/png,image/jpeg,image/jpg"
                     onChange={handleUploadChange}
                   />
@@ -219,24 +212,20 @@ const AdminProfile = () => {
           <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
             <Col xs={24} md={8}>
               <Card>
-                <Statistic title="总用户数" value={256} prefix={<UsergroupAddOutlined />} />
+                <Statistic title="总用户数" value={stats.total_users} prefix={<UsergroupAddOutlined />} />
               </Card>
             </Col>
             <Col xs={24} md={8}>
               <Card>
-                <Statistic title="商家数" value={32} prefix={<ShopOutlined />} />
+                <Statistic title="商家数" value={stats.total_merchants} prefix={<ShopOutlined />} />
               </Card>
             </Col>
             <Col xs={24} md={8}>
               <Card>
-                <Statistic title="资源总数" value={128} prefix={<BarChartOutlined />} />
+                <Statistic title="资源总数" value={stats.total_markdown} prefix={<BarChartOutlined />} />
               </Card>
             </Col>
           </Row>
-
-          <Card title="用户管理（最近）" bordered>
-            <Table columns={userColumns} dataSource={userData} pagination={false} />
-          </Card>
         </div>
       </Content>
     </Layout>

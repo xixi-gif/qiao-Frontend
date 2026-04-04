@@ -84,7 +84,9 @@ const projectApi = {
   getCheckinWall:(params)=>service.get('/checkin/wall',{params}),
   adminGetAllCheckins:(params)=>service.get('/checkin/admin/all',{params}),
   adminUpdateCheckinStatus:(id,status)=>service.put(`/checkin/admin/${id}/status`,{},{params:{status}}),
-  uploadCheckinImage:(formData)=>service.post('/checkin/upload/image',formData,{headers:{'Content-Type':'multipart/form-data'}})
+  uploadCheckinImage:(formData)=>service.post('/checkin/upload/image',formData,{headers:{'Content-Type':'multipart/form-data'}}),
+  adminBatchCheckinAudit: (data) => service.put('/checkin/admin/batch-audit', data),
+
 };
 
 const userAdminApi = {
@@ -136,6 +138,7 @@ const interactionApi = {
 
 const markdownApi = {
   getList:(params)=>service.get('/markdown/list',{params}),
+  getAdminList:(params)=>service.get('/markdown/admin/list',{params}),
   getDetail:(id)=>service.get(`/markdown/${id}`),
   create:(data)=>service.post('/markdown/create',data),
   update:(id,data)=>service.put(`/markdown/${id}`,data),
@@ -145,7 +148,7 @@ const markdownApi = {
   toggleFavorite: (docId) => service.post(`/markdown/favorite/${docId}`),
   getMyFavorites: () => service.get("/markdown/my/favorites"),
   getMyFavoriteIds: () => service.get("/markdown/my/favorite-ids"),
-  getKnowledgeGraph: () => service.get("/graph") 
+  getKnowledgeGraph: () => service.get("/graph") ,
 };
 
 const chatApi = {
@@ -168,6 +171,20 @@ const chatApi = {
   upload:(fd)=>service.post('/chat/upload',fd,{headers:{'Content-Type':'multipart/form-data'}})
 };
 
+const merchantApi = {
+  getAnalysis: (params) => service.get('/merchant/analysis/dashboard', { params }),
+  getTrend: (params) => service.get('/merchant/analysis/trend', { params })
+};
+
+const qiaoxiangAiApi = {
+  ask: (query) => service.post('/chat/qiaoxiang_ai', null, { params: { query } })
+};
+
+const adminApi = {
+  getStatistics: (params) => service.get('/admin/statistics/dashboard', { params }),
+  getTrend: (params) => service.get('/admin/statistics/trend', { params })
+};
+
 export default {
   authApi,
   plannerApi,
@@ -179,5 +196,8 @@ export default {
   categoryApi,
   interactionApi,
   markdownApi,
-  chatApi
+  chatApi,
+  qiaoxiangAiApi,
+  merchantApi,
+  adminApi
 };

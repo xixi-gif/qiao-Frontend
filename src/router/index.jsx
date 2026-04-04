@@ -33,6 +33,8 @@ import MarkdownAdminPage from '../pages/MarkdownAdminPage/MarkdownAdminPage';
 import ChatPage from '../pages/ChatPage/ChatPage';
 import MarkdownViewerPage from '../pages/MarkdownViewerPage/MarkdownViewerPage';
 import MyFavoritePage from '../pages/MyFavoritePage/MyFavoritePage';
+import DataAnalysis from '../pages/DataAnalysisPage/DataAnalysisPage';
+import DataStatistics from '../pages/DataStatisticsPage/DataStatisticsPage';
 
 const AppRoutes = () => {
   return (
@@ -72,6 +74,8 @@ const AppRoutes = () => {
       <Route path="/cultural-resources" element={<MarkdownViewerPage />} />
       <Route path="/chat/:id?" element={<ChatPage />} />
       <Route path="/visitor/collection" element={<MyFavoritePage />} />
+      <Route path="/merchant/data-analysis" element={<DataAnalysis />} />
+      <Route path="/admin/data-statistics" element={<DataStatistics />} />
 
     </Routes>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Typography, Input, Card, Row, Col, Modal, Spin, Empty, Image, Pagination, Button, message } from "antd";
+import { Layout, Typography, Input, Card, Row, Col, Modal, Spin, Empty, Image, Pagination, Button, message, Drawer } from "antd";
 import { StarOutlined, StarFilled } from "@ant-design/icons";
 import MDEditor from "@uiw/react-md-editor";
 import api from "../../service/api";
@@ -18,13 +18,17 @@ const MarkdownViewerPage = () => {
   const [searchKey, setSearchKey] = useState('');
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [page, setPage] = useState(1);
-  const [size, setSize] = useState(12);
+  const [size, setSize] = useState(20);
   const [total, setTotal] = useState(0);
-
   const [viewMode, setViewMode] = useState('resource');
   const chartRef = useRef(null);
   const [graphLoading, setGraphLoading] = useState(false);
   const chartInstanceRef = useRef(null);
+
+  const [aiDrawerVisible, setAiDrawerVisible] = useState(false);
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiAnswer, setAiAnswer] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
   const loadFavoriteIds = async () => {
     try {
@@ -36,11 +40,10 @@ const MarkdownViewerPage = () => {
   const loadList = async () => {
     setLoading(true);
     try {
-      const res = await api.markdownApi.getList();
-      let data = res.data || [];
-      data = data.filter(item => !item.is_deleted);
-      setTotal(data.length);
-      setList(data);
+      const skip = (page - 1) * size;
+      const res = await api.markdownApi.getList({ skip, limit: size, title: searchKey });
+      setTotal(res.data.total);
+      setList(res.data.items);
     } catch (err) {
       console.error(err);
     } finally {
@@ -51,31 +54,73 @@ const MarkdownViewerPage = () => {
   const loadKnowledgeGraph = async () => {
     if (!chartRef.current) return;
     setGraphLoading(true);
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.dispose();
+      chartInstanceRef.current = null;
+    }
     try {
       const res = await api.markdownApi.getKnowledgeGraph();
-      const { nodes, links } = res.data;
-
-      if (chartInstanceRef.current) chartInstanceRef.current.dispose();
+      let { nodes = [], links = [] } = res.data;
+      nodes = nodes.slice(0, 350);
+      links = links.slice(0, 350);
       const chart = echarts.init(chartRef.current);
       chartInstanceRef.current = chart;
-
       const option = {
-        backgroundColor: '#fff',
-        tooltip: { trigger: 'item' },
-        graph: {
-          layout: 'force',
-          roam: true,
-          zoom: true,
-          force: { repulsion: 200, edgeLength: 70 },
-          nodes: nodes.map(n => ({ id: n.id, name: n.name, category: n.category, symbolSize: 28 })),
-          links: links.map(l => ({ source: l.source, target: l.target, name: l.relation })),
-          categories: [
-            { name: 'person', itemStyle: { color: '#FF6B6B' } },
-            { name: 'hometown', itemStyle: { color: '#4ECDC4' } },
-            { name: 'house', itemStyle: { color: '#FFE066' } },
-            { name: 'remittance', itemStyle: { color: '#9D65C9' } }
-          ]
-        }
+        tooltip: {
+          formatter: (params) => {
+            if (params.dataType === 'node') {
+              const name = params.data.name || '';
+              const summary = params.data.summary || '暂无简介';
+              return `<div style="max-width:320px; padding:8px 12px; line-height:1.7; white-space: pre-wrap;"><b>${name}</b><br/>${summary}</div>`;
+            }
+            return params.data.rel_type;
+          },
+          backgroundColor: "#fff",
+          textStyle: { width: 300 },
+          extraCssText: "max-width:320px; white-space: pre-wrap; word-wrap: break-word;"
+        },
+        legend: [
+          {
+            data: ['人物', '地点', '建筑', '侨批'],
+            top: 10
+          }
+        ],
+        series: [
+          {
+            type: 'graph',
+            layout: 'force',
+            roam: true,
+            zoom: true,
+            nodeScaleRatio: 0.6,
+            symbolSize: 18,
+            label: {
+              show: true,
+              fontSize: 11
+            },
+            force: {
+              repulsion: 150,
+              edgeLength: 60,
+              gravity: 0.1
+            },
+            data: nodes.map(n => ({
+              id: n.entity_id,
+              name: n.name,
+              category: (n.type_name === 'person' ? 0 : n.type_name === 'hometown' ? 1 : n.type_name === 'house' ? 2 : 3),
+              summary: n.summary
+            })),
+            links: links.map(l => ({
+              source: l.start_entity_id,
+              target: l.end_entity_id,
+              rel_type: l.rel_type
+            })),
+            categories: [
+              { name: '人物', itemStyle: { color: '#ff6b6b' } },
+              { name: '地点', itemStyle: { color: '#4ecdc4' } },
+              { name: '建筑', itemStyle: { color: '#ffd93d' } },
+              { name: '侨批', itemStyle: { color: '#9c65d0' } }
+            ]
+          }
+        ]
       };
       chart.setOption(option);
       window.addEventListener('resize', () => chart.resize());
@@ -102,18 +147,47 @@ const MarkdownViewerPage = () => {
     }
   };
 
+  const handleAiAsk = async () => {
+    if (!aiQuestion.trim()) {
+      message.warning('请输入问题');
+      return;
+    }
+    setAiLoading(true);
+    setAiAnswer("AI 正在生成回答，请稍候...");
+    try {
+      const res = await api.qiaoxiangAiApi.ask(aiQuestion);
+      if (res.data.code === 200) {
+        setAiAnswer(res.data.answer);
+      } else {
+        setAiAnswer("获取回答失败");
+      }
+    } catch (err) {
+      console.error(err);
+      setAiAnswer('请求失败，请检查后端服务是否启动');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadList();
+  }, [page, size, searchKey]);
+
+  useEffect(() => {
     loadFavoriteIds();
   }, []);
 
   useEffect(() => {
-    if (viewMode === 'graph') loadKnowledgeGraph();
+    if (viewMode === 'graph') {
+      loadKnowledgeGraph();
+    }
+    return () => {
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.dispose();
+        chartInstanceRef.current = null;
+      }
+    };
   }, [viewMode]);
-
-  const filteredList = list.filter(item =>
-    item.title?.toLowerCase().includes(searchKey.toLowerCase())
-  );
 
   const handleView = (record) => {
     setCurrentDoc(record);
@@ -126,7 +200,6 @@ const MarkdownViewerPage = () => {
       <Content style={{ padding: "24px" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
           <Title level={3}>📄 文档资源库</Title>
-
           <Search
             placeholder="搜索文档名称"
             allowClear
@@ -137,34 +210,55 @@ const MarkdownViewerPage = () => {
             style={{ marginBottom: 20, maxWidth: 500 }}
           />
 
-          <Card style={{ marginBottom: 24 }}>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <Button type={viewMode === 'resource' ? 'primary' : 'default'} onClick={() => setViewMode('resource')}>
-                文化资源
-              </Button>
-              <Button type={viewMode === 'graph' ? 'primary' : 'default'} onClick={() => setViewMode('graph')}>
-                知识图谱
-              </Button>
-            </div>
-          </Card>
+          <div style={{
+            background: '#fff',
+            padding: '16px 20px',
+            borderRadius: '8px',
+            marginBottom: 24,
+            display: 'flex',
+            gap: '12px'
+          }}>
+            <Button
+              type={viewMode === 'resource' ? 'primary' : 'default'}
+              onClick={() => setViewMode('resource')}
+            >
+              文化资源
+            </Button>
+            <Button
+              type={viewMode === 'graph' ? 'default' : 'default'}
+              onClick={() => setViewMode('graph')}
+            >
+              知识图谱
+            </Button>
+            <Button
+              type={aiDrawerVisible ? 'primary' : 'default'}
+              onClick={() => setAiDrawerVisible(true)}
+              style={{ fontWeight: 500 }}
+            >
+              🌍 开启智慧问答模式
+            </Button>
+          </div>
 
           {viewMode === 'resource' ? (
             <Spin spinning={loading}>
-              {filteredList.length === 0 ? (
+              {list.length === 0 ? (
                 <Empty style={{ marginTop: 60 }} />
               ) : (
                 <Row gutter={[20, 20]}>
-                  {filteredList.map((item) => {
+                  {list.map((item) => {
                     const imgMatch = item.content?.match(/!\[.*?\]\((.*?)\)/);
                     const cover = imgMatch ? imgMatch[1] : null;
                     const isFav = favoriteIds.includes(item.id);
-
                     return (
                       <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
                         <Card hoverable
-                          cover={cover ? <div style={{ height: 160, overflow: 'hidden' }}>
-                            <Image src={cover} preview={false} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
-                          </div> : <div style={{ height: 160, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>无封面图</div>}
+                          cover={
+                            cover ? (
+                              <Image src={cover} preview={false} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ height: 160, backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>无封面图</div>
+                            )
+                          }
                           onClick={() => handleView(item)}
                         >
                           <div style={{ position: 'absolute', top: 10, right: 10 }}>
@@ -181,20 +275,108 @@ const MarkdownViewerPage = () => {
           ) : (
             <Card style={{ padding: 0 }}>
               <Spin spinning={graphLoading}>
-                <div ref={chartRef} style={{ width: '100%', height: 600 }} />
+                <div ref={chartRef} style={{ width: '100%', height: 700 }} />
               </Spin>
             </Card>
           )}
 
           {viewMode === 'resource' && (
             <div style={{ textAlign: 'center', marginTop: 30 }}>
-              <Pagination current={page} pageSize={size} total={total} onChange={setPage} />
+              <Pagination
+                current={page}
+                pageSize={size}
+                total={total}
+                onChange={setPage}
+                onShowSizeChange={(current, pageSize) => {
+                  setPage(1);
+                  setSize(pageSize);
+                }}
+                showSizeChanger
+                pageSizeOptions={["10","20","50","100"]}
+                showTotal={(total) => `共 ${total} 条`}
+              />
             </div>
           )}
 
-          <Modal open={visible} title={currentDoc?.title} onCancel={() => setVisible(false)} width={1000} footer={null} destroyOnClose>
-            <MDEditor.Markdown source={currentDoc?.content} style={{ padding: 10, minHeight: 500 }} />
+          <Modal 
+            open={visible} 
+            title={currentDoc?.title} 
+            onCancel={() => setVisible(false)} 
+            width={900} 
+            footer={null} 
+            destroyOnClose
+          >
+            <div style={{
+              fontSize: "14px",
+              lineHeight: "1.6",
+              maxHeight: "70vh",
+              overflow: "auto",
+              padding: "10px 14px",
+            }}>
+              <style>{`
+                .wmde-markdown img {
+                  max-width: 100% !important;
+                  height: auto !important;
+                  display: block;
+                  margin: 10px 0;
+                }
+                .wmde-markdown {
+                  font-size: 15px !important;
+                  line-height: 1.6 !important;
+                }
+                .wmde-markdown h1 {
+                  font-size: 22px !important;
+                }
+                .wmde-markdown h2 {
+                  font-size: 19px !important;
+                }
+                .wmde-markdown h3 {
+                  font-size: 17px !important;
+                }
+              `}</style>
+              <MDEditor.Markdown source={currentDoc?.content} />
+            </div>
           </Modal>
+
+          <Drawer
+            title="🌍 侨乡智慧问答"
+            placement="right"
+            width={420}
+            open={aiDrawerVisible}
+            onClose={() => setAiDrawerVisible(false)}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Input.TextArea
+                rows={4}
+                placeholder="请输入你想了解的侨乡问题，例如：陈慈黉故居有什么故事？"
+                value={aiQuestion}
+                onChange={(e) => setAiQuestion(e.target.value)}
+              />
+              <Button
+                type="primary"
+                loading={aiLoading}
+                onClick={handleAiAsk}
+                disabled={!aiQuestion.trim()}
+              >
+                发送问题
+              </Button>
+
+              <div style={{ marginTop: 16, fontWeight: 500 }}>AI 回答：</div>
+              <div
+                style={{
+                  padding: 12,
+                  backgroundColor: '#f7f8fa',
+                  borderRadius: 8,
+                  minHeight: 100,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {aiAnswer || '等待提问...'}
+              </div>
+            </div>
+          </Drawer>
+
         </div>
       </Content>
     </Layout>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, message, Upload, Modal, Space, Typography, Layout, Card } from "antd";
-import { PlusOutlined, DeleteOutlined, EyeOutlined, UploadOutlined } from "@ant-design/icons";
+import { Table, Button, Input, message, Upload, Modal, Space, Typography, Layout, Card, Pagination } from "antd";
+import { DeleteOutlined, EyeOutlined, UploadOutlined } from "@ant-design/icons";
 import MDEditor from "@uiw/react-md-editor";
 import api from "../../service/api";
 import Navbar from '../../../public/Nav/nav';
@@ -10,15 +10,21 @@ const { Content } = Layout;
 
 const MarkdownAdminPage = () => {
   const [list, setList] = useState([]);
-  const [visible, setVisible, setCacheFiles] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [id, setId] = useState(null);
-  const [cacheFiles, setCacheFilesState] = useState([]);
+  const [cacheFiles, setCacheFiles] = useState([]);
+  const [page, setPage] = useState(1);
+  const [size, setSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [searchKey, setSearchKey] = useState('');
 
   const load = async () => {
-    const res = await api.markdownApi.getList();
-    setList(res.data);
+    const skip = (page - 1) * size;
+    const res = await api.markdownApi.getAdminList({ skip, limit: size, title: searchKey });
+    setTotal(res.data.total);
+    setList(res.data.items);
   };
 
   const save = async () => {
@@ -48,26 +54,23 @@ const MarkdownAdminPage = () => {
       message.warning("请先添加文件");
       return;
     }
-
     const formData = new FormData();
     cacheFiles.forEach(item => {
       formData.append('files', item.originFileObj || item);
     });
-
     try {
       await api.markdownApi.batchUpload(formData);
-      message.success("批量上传成功！图片已自动插入");
-      setCacheFilesState([]);
+      message.success("批量上传成功！");
+      setCacheFiles([]);
       load();
     } catch (err) {
       message.error("上传失败");
-      console.error(err);
     }
   };
 
   useEffect(() => {
     load();
-  }, []);
+  }, [page, size, searchKey]);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -75,7 +78,12 @@ const MarkdownAdminPage = () => {
       <Layout>
         <Content style={{ padding: "24px", overflow: "auto", height: "calc(100vh - 64px)" }}>
           <Title level={3}>文档管理</Title>
-
+          <Input
+            placeholder="搜索标题"
+            value={searchKey}
+            onChange={(e) => setSearchKey(e.target.value)}
+            style={{ marginBottom: 16 }}
+          />
           <Card style={{ marginTop: 16 }}>
             <Upload
               drag
@@ -85,34 +93,26 @@ const MarkdownAdminPage = () => {
               showUploadList={true}
               beforeUpload={() => false}
               onChange={(info) => {
-                setCacheFilesState(info.fileList);
+                setCacheFiles(info.fileList);
               }}
             >
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                padding: '20px'
-              }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
                 <UploadOutlined style={{ fontSize: 28, marginBottom: 12 }} />
                 <h4 style={{ margin: 0 }}>点击或拖拽文件到此处</h4>
                 <p style={{ margin: 0, marginTop: 4 }}>支持批量上传 .md + 同名图片自动匹配</p>
               </div>
             </Upload>
-
             {cacheFiles.length > 0 && (
               <Button type="primary" style={{ marginTop: 16 }} onClick={handleConfirmUpload}>
                 确认上传
               </Button>
             )}
           </Card>
-
           <div style={{ marginTop: 16 }}>
             <Table
               dataSource={list}
               rowKey="id"
+              pagination={false}
               columns={[
                 { title: '标题', dataIndex: 'title' },
                 { title: '时间', dataIndex: 'created_at' },
@@ -135,8 +135,22 @@ const MarkdownAdminPage = () => {
                 }
               ]}
             />
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <Pagination
+                current={page}
+                pageSize={size}
+                total={total}
+                onChange={setPage}
+                onShowSizeChange={(current, pageSize) => {
+                  setPage(1);
+                  setSize(pageSize);
+                }}
+                showSizeChanger
+                pageSizeOptions={["10", "20", "50", "100"]}
+                showTotal={(total) => `共 ${total} 条`}
+              />
+            </div>
           </div>
-
           <Modal
             open={visible}
             title="编辑文档"

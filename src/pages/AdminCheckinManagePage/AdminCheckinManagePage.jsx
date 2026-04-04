@@ -57,32 +57,44 @@ const AdminCheckinManage = () => {
     }
   };
 
+  // 批量通过（优化 实时刷新）
   const handleBatchPass = () => {
     if (selectedRowKeys.length === 0) return message.warning('请选择数据');
     Modal.confirm({
       title: '批量通过',
       onOk: async () => {
-        for (let id of selectedRowKeys) {
-          await api.projectApi.adminUpdateCheckinStatus(id, 'approved');
+        try {
+          await api.projectApi.adminBatchCheckinAudit({
+            ids: selectedRowKeys,
+            status: 'approved'
+          });
+          message.success('批量通过成功');
+          setSelectedRowKeys([]);
+          fetchList();
+        } catch (e) {
+          message.error('操作失败');
         }
-        message.success('批量通过成功');
-        setSelectedRowKeys([]);
-        fetchList();
       }
     });
   };
 
+  // 批量驳回（优化 实时刷新）
   const handleBatchReject = () => {
     if (selectedRowKeys.length === 0) return message.warning('请选择数据');
     Modal.confirm({
       title: '批量驳回',
       onOk: async () => {
-        for (let id of selectedRowKeys) {
-          await api.projectApi.adminUpdateCheckinStatus(id, 'rejected');
+        try {
+          await api.projectApi.adminBatchCheckinAudit({
+            ids: selectedRowKeys,
+            status: 'rejected'
+          });
+          message.success('批量驳回成功');
+          setSelectedRowKeys([]);
+          fetchList();
+        } catch (e) {
+          message.error('操作失败');
         }
-        message.success('批量驳回成功');
-        setSelectedRowKeys([]);
-        fetchList();
       }
     });
   };

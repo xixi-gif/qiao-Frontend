@@ -32,11 +32,8 @@ const roleSpecificItems = {
     { key: '/visitor/cultural-guide', icon: <CompassOutlined />, label: '文化导览' }
   ],
   merchant: [
-    { key: '/merchant/my-projects', icon: <ProjectOutlined />, label: '我的项目' },
-    { key: '/merchant/resource-manage', icon: <BookOutlined />, label: '资源管理' },
+    { key: '/visitor/collection', icon: <BookOutlined />, label: '我的资源' },
     { key: '/merchant/data-analysis', icon: <BarChartOutlined />, label: '数据分析' },
-    { key: '/merchant/order-manage', icon: <ReconciliationOutlined />, label: '订单管理' },
-    { key: '/merchant/shop-setting', icon: <SettingOutlined />, label: '店铺设置' }
   ],
   admin: [
     { key: '/admin/announcement-publish', icon: <NotificationOutlined />, label: '公告发布' },
