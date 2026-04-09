@@ -7,7 +7,6 @@ import Navbar from '../../../public/Nav/nav';
 
 const { Title } = Typography;
 const { Content } = Layout;
-const { Search } = Input;
 
 const MyFavoritePage = () => {
   const [list, setList] = useState([]);
@@ -16,10 +15,21 @@ const MyFavoritePage = () => {
   const [currentDoc, setCurrentDoc] = useState(null);
   const [searchKey, setSearchKey] = useState('');
 
+  const getLocalUserId = () => {
+    let id = localStorage.getItem("user_id");
+    if (!id) {
+      id = Math.floor(Math.random() * 10000) + 2;
+      localStorage.setItem("user_id", id);
+    }
+    return parseInt(id);
+  };
+
+  const userId = getLocalUserId();
+
   const loadMyFavorites = async () => {
     setLoading(true);
     try {
-      const res = await api.markdownApi.getMyFavorites();
+      const res = await api.markdownApi.getMyFavorites(userId);
       setList(res.data || []);
     } catch (err) {
     } finally {
@@ -29,7 +39,7 @@ const MyFavoritePage = () => {
 
   const unfavorite = async (docId) => {
     try {
-      await api.markdownApi.toggleFavorite(docId);
+      await api.markdownApi.toggleFavorite(docId, userId);
       message.success("已取消收藏");
       loadMyFavorites();
     } catch (err) {
@@ -46,27 +56,37 @@ const MyFavoritePage = () => {
   );
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f5f1" }}>
       <Navbar />
       <Content style={{ padding: "24px" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-          <Title level={3}>⭐ 我的收藏资源库</Title>
-
-          <Search
-            placeholder="搜索收藏文档"
-            allowClear
-            enterButton="搜索"
-            size="large"
-            value={searchKey}
-            onChange={(e) => setSearchKey(e.target.value)}
-            style={{ marginBottom: 20, maxWidth: 500 }}
-          />
+          
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <Title level={3} style={{ margin: 0, color: "#9C706A" }}>我的收藏资源库</Title>
+            <div style={{ display: "flex", gap: 8, width: 400 }}>
+              <Input
+                placeholder="搜索收藏文档"
+                value={searchKey}
+                onChange={(e) => setSearchKey(e.target.value)}
+                style={{ flex: 1 }}
+                size="large"
+                allowClear
+              />
+              <Button
+                size="large"
+                style={{ backgroundColor: "#9C706A", color: "#fff", borderColor: "#9C706A" }}
+                onClick={() => {}}
+              >
+                检索
+              </Button>
+            </div>
+          </div>
 
           <Spin spinning={loading}>
             {filteredList.length === 0 ? (
               <Empty description="暂无收藏" style={{ marginTop: 60 }} />
             ) : (
-              <Row gutter={[20, 20]} style={{ marginTop: 20 }}>
+              <Row gutter={[20, 20]}>
                 {filteredList.map((item) => {
                   const imgMatch = item.content?.match(/!\[.*?\]\((.*?)\)/);
                   const cover = imgMatch ? imgMatch[1] : null;
@@ -74,6 +94,8 @@ const MyFavoritePage = () => {
                     <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
                       <Card
                         hoverable
+                        bordered={false}
+                        style={{ borderRadius: 12, overflow: "hidden" }}
                         cover={
                           cover ? (
                             <div style={{ height: 160, overflow: "hidden" }}>

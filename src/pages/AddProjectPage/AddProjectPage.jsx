@@ -17,19 +17,14 @@ const AddProjectPage = () => {
   const [imageUrl, setImageUrl] = useState();
   const [file, setFile] = useState(null);
 
-  // 从数据库获取的 分类 + 标签
   const [categoryList, setCategoryList] = useState([]);
   const [tagList, setTagList] = useState([]);
 
-  // ✅ 页面加载时自动获取数据库数据（完美使用你的现有接口）
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 获取分类（你的接口：GET /categories）
         const cateRes = await api.categoryApi.getList({ limit: 100 });
         setCategoryList(cateRes.data || []);
-
-        // 获取标签
         const tagRes = await api.tagApi.getList({ limit: 100 });
         setTagList(tagRes.data || []);
       } catch (err) {
@@ -69,13 +64,8 @@ const AddProjectPage = () => {
 
       const formData = new FormData();
       formData.append('title', values.title);
-      
-      // ✅ 直接提交【中文分类名】到后端
       formData.append('category', values.category);
-      
-      // ✅ 直接提交【中文标签】到后端
       formData.append('tags', values.tags.join(','));
-      
       formData.append('address', values.address);
       formData.append('start_time', values.startTime.toISOString());
       formData.append('end_time', values.endTime.toISOString());
@@ -103,16 +93,6 @@ const AddProjectPage = () => {
       <Navbar />
       <Content style={{ padding: '24px' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-          <Breadcrumb style={{ marginBottom: 16 }}>
-            <Breadcrumb.Item onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
-              <HomeOutlined /> 首页
-            </Breadcrumb.Item>
-            <Breadcrumb.Item onClick={() => navigate('/merchant/profile')} style={{ cursor: 'pointer' }}>
-              商家中心
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>发布文旅项目</Breadcrumb.Item>
-          </Breadcrumb>
-
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, alignItems: 'center' }}>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/merchant/profile')}>
               返回
@@ -132,7 +112,6 @@ const AddProjectPage = () => {
               <Row gutter={16}>
                 <Col xs={24} md={12}>
                   <Form.Item name="category" label="项目分类" rules={[{ required: true }]}>
-                    {/* ✅ 动态渲染数据库分类 */}
                     <Select placeholder="请选择分类">
                       {categoryList.map(item => (
                         <Option key={item.id} value={item.name}>
@@ -144,7 +123,6 @@ const AddProjectPage = () => {
                 </Col>
                 <Col xs={24} md={12}>
                   <Form.Item name="tags" label="项目标签" rules={[{ required: true }]}>
-                    {/* ✅ 动态渲染数据库标签 */}
                     <Select mode="multiple" placeholder="可多选标签">
                       {tagList.map(item => (
                         <Option key={item.id} value={item.name}>
@@ -214,7 +192,7 @@ const AddProjectPage = () => {
               <Form.Item style={{ textAlign: 'center', marginTop: 32 }}>
                 <Space size="large">
                   <Button onClick={() => navigate('/merchant/profile')}>取消</Button>
-                  <Button type="primary" loading={loading} onClick={handleSubmit} icon={<SaveOutlined />} size="middle">提交项目</Button>
+                  <Button type="primary" loading={loading} onClick={handleSubmit} icon={<SaveOutlined />} size="middle" style={{ backgroundColor: '#9C706A', borderColor: '#9C706A', color: '#fff' }}>提交项目</Button>
                 </Space>
               </Form.Item>
             </Form>

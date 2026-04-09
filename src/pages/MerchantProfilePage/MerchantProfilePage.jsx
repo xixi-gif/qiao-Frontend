@@ -21,7 +21,6 @@ const MerchantProfile = () => {
   const isFirstLoad = useRef(true);
   const isUserInfoFetched = useRef(false);
 
-  // 收藏、点赞、评论 状态（和访客中心完全一致）
   const [favorites, setFavorites] = useState([]);
   const [likes, setLikes] = useState([]);
   const [comments, setComments] = useState([]);
@@ -48,7 +47,6 @@ const MerchantProfile = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // 获取收藏、点赞、评论（和访客一样）
   const fetchUserInteractions = async () => {
     if (!token) return;
     setListLoading(true);
@@ -183,14 +181,12 @@ const MerchantProfile = () => {
     return false;
   };
 
-  // 图片路径修复（兼容旧数据）
   const fixImg = (url) => {
     if (!url) return '';
     let u = url.replace(/\\/g, '/');
     return `http://127.0.0.1:8090${u}`;
   };
 
-  // 状态标签修复（关键！！！）
   const getProjectTag = (status) => {
     if (status === 'pending') {
       return <Tag color="processing">审核中</Tag>;
@@ -204,17 +200,16 @@ const MerchantProfile = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       <Navbar />
       <Content style={{ padding: 24 }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <Title level={2} style={{ margin: 0 }}>商家中心</Title>
+            <Title level={2} style={{ margin: 0, color:'#9C706A' }}>商家中心</Title>
             <Button danger icon={<LogoutOutlined />} onClick={handleLogout}>退出登录</Button>
           </div>
 
-          {/* 商家信息卡片 */}
-          <Card loading={loading} extra={<Button type={editable ? 'primary' : 'default'} icon={editable ? <SaveOutlined /> : <EditOutlined />} onClick={editable ? handleSave : () => setEditable(true)} loading={loading}>{editable ? '保存信息' : '编辑信息'}</Button>} style={{ marginBottom: 24 }}>
+          <Card loading={loading} extra={<Button type={editable ? 'primary' : 'default'} icon={editable ? <SaveOutlined /> : <EditOutlined />} onClick={editable ? handleSave : () => setEditable(true)} loading={loading} style={editable ? { backgroundColor: '#9C706A', borderColor: '#9C706A' } : { color: '#9C706A' }}>{editable ? '保存信息' : '编辑信息'}</Button>} style={{ marginBottom: 24, borderRadius:12 }}>
             <Row gutter={[24, 24]} align="middle">
               <Col xs={24} md={6} style={{ textAlign: 'center' }}>
                 <Avatar size={120} src={userInfo?.avatar ? fixImg(userInfo.avatar) : undefined} icon={<ShopOutlined />} style={{ marginBottom: 8 }} />
@@ -237,8 +232,7 @@ const MerchantProfile = () => {
             </Row>
           </Card>
 
-          {/* 我的文旅项目 */}
-          <Card title="我的文旅项目" loading={projectLoading} extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/merchant/create-project')}>添加项目</Button>} style={{ marginBottom: 24 }}>
+          <Card title="我的文旅项目" headStyle={{ color:'#9C706A' }} loading={projectLoading} extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/merchant/create-project')} style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>添加项目</Button>} style={{ marginBottom: 24, borderRadius:12 }}>
             <Row gutter={[24, 24]}>
               {projectList.map((item) => (
                 <Col xs={24} sm={12} lg={8} key={item.id}>
@@ -255,22 +249,21 @@ const MerchantProfile = () => {
                         {getProjectTag(item.status)}
                       </div>
                     </div>
-                    <Title level={5} style={{ margin: '8px 0' }}>{item.title}</Title>
+                    <Title level={5} style={{ margin: '8px 0', color:'#9C706A' }}>{item.title}</Title>
                     <div>{item.tags.split(',').map((t, i) => <Tag key={i} size="small">{t}</Tag>)}</div>
                     <Paragraph ellipsis={{ rows: 2 }} style={{ color: '#666' }}>{item.description}</Paragraph>
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#999', fontSize: 12 }}>
                       <span><EyeOutlined /> {item.views}</span>
                       <span><ShoppingCartOutlined /> {item.orders}</span>
                     </div>
-                    <Button type="primary" block size="small" style={{ marginTop: 10 }} onClick={() => navigate(`/merchant/project/${item.id}`)}>查看详情</Button>
+                    <Button type="primary" block size="small" style={{ marginTop: 10, backgroundColor: '#9C706A', borderColor: '#9C706A' }} onClick={() => navigate(`/merchant/project/${item.id}`)}>查看详情</Button>
                   </Card>
                 </Col>
               ))}
             </Row>
           </Card>
 
-          {/* ===================== 新增：我的收藏（和访客完全一样） ===================== */}
-          <Card title="我的收藏" style={{ marginBottom: 16 }} extra={<Button onClick={() => navigate('/user/favorites')}>查看更多</Button>}>
+          <Card title="我的收藏" headStyle={{ color:'#9C706A' }} style={{ marginBottom: 16, borderRadius:12 }} extra={<Button onClick={() => navigate('/user/favorites')} style={{ color:'#9C706A' }}>查看更多</Button>}>
             {listLoading ? <Card loading /> : favorites.length > 0 ? (
               <Row gutter={[12, 12]}>
                 {favorites.slice(0, 3).map(item => (
@@ -285,8 +278,7 @@ const MerchantProfile = () => {
             ) : <Typography.Text type="secondary">暂无收藏</Typography.Text>}
           </Card>
 
-          {/* ===================== 新增：我的点赞（和访客完全一样） ===================== */}
-          <Card title="我的点赞" style={{ marginBottom: 16 }} extra={<Button onClick={() => navigate('/user/likes')}>查看更多</Button>}>
+          <Card title="我的点赞" headStyle={{ color:'#9C706A' }} style={{ marginBottom: 16, borderRadius:12 }} extra={<Button onClick={() => navigate('/user/likes')} style={{ color:'#9C706A' }}>查看更多</Button>}>
             {listLoading ? <Card loading /> : likes.length > 0 ? (
               <Row gutter={[12, 12]}>
                 {likes.slice(0, 3).map(item => (
@@ -301,8 +293,7 @@ const MerchantProfile = () => {
             ) : <Typography.Text type="secondary">暂无点赞</Typography.Text>}
           </Card>
 
-          {/* ===================== 新增：我的评论（和访客完全一样） ===================== */}
-          <Card title="我的评论" extra={<Button onClick={() => navigate('/user/comments')}>查看更多</Button>}>
+          <Card title="我的评论" headStyle={{ color:'#9C706A' }} style={{ borderRadius:12 }} extra={<Button onClick={() => navigate('/user/comments')} style={{ color:'#9C706A' }}>查看更多</Button>}>
             {listLoading ? <Card loading /> : comments.length > 0 ? (
               <div>
                 {comments.slice(0, 2).map((item, idx) => (

@@ -36,7 +36,9 @@ const AdminProjectManage = () => {
     setLoading(true);
     try {
       const res = await api.projectApi.adminGetProjects({ title: searchTitle, status: filterStatus });
-      setProjectList(res.data || []);
+      const list = res.data || [];
+      list.sort((a, b) => new Date(b.create_time) - new Date(a.create_time));
+      setProjectList(list);
     } catch (err) {
       message.error('获取项目失败');
       setProjectList([]);
@@ -218,10 +220,11 @@ const AdminProjectManage = () => {
     {
       title: '封面',
       dataIndex: 'cover',
+      width: 90,
       render: (url) => (
         <img 
           src={fixImageUrl(url)} 
-          style={{ width: 60, height: 40, objectFit: 'cover' }} 
+          style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 4 }} 
           alt="cover"
         />
       ),
@@ -229,15 +232,18 @@ const AdminProjectManage = () => {
     {
       title: '项目名称',
       dataIndex: 'title',
+      width: 220,
     },
     {
       title: '分类',
       dataIndex: 'category',
+      width: 130,
       render: (c) => categoryMap[c] || c,
     },
     {
       title: '状态',
       dataIndex: 'status',
+      width: 110,
       render: (s) => {
         const color = s === 'active' ? 'green' : s === 'pending' ? 'gold' : 'red';
         const text = s === 'active' ? '已上架' : s === 'pending' ? '待审核' : '已驳回';
@@ -246,10 +252,11 @@ const AdminProjectManage = () => {
     },
     {
       title: '操作',
+      width: 380,
       render: (_, r) => (
-        <Space>
+        <Space size="small">
           <Button type="text" icon={<EyeOutlined />} onClick={() => fetchDetail(r.id)}>查看详情</Button>
-          {r.status === 'pending' && <Button type="text" onClick={() => handleAudit(r.id, 'active')} icon={<CheckOutlined />}>通过</Button>}
+          {r.status === 'pending' && <Button type="text" style={{ color: '#52c41a' }} onClick={() => handleAudit(r.id, 'active')} icon={<CheckOutlined />}>通过</Button>}
           {r.status === 'pending' && <Button type="text" danger onClick={() => handleAudit(r.id, 'rejected')} icon={<CloseOutlined />}>驳回</Button>}
           {r.status === 'active' && <Button type="text" danger onClick={() => handleAudit(r.id, 'rejected')}>下架</Button>}
           <Popconfirm
@@ -271,10 +278,11 @@ const AdminProjectManage = () => {
   };
 
   const tagTableColumns = [
-    { title: '标签名称', dataIndex: 'name' },
-    { title: '排序', dataIndex: 'sort_num' },
+    { title: '标签名称', dataIndex: 'name', width: 180 },
+    { title: '排序', dataIndex: 'sort_num', width: 100 },
     {
       title: '操作',
+      width: 180,
       render: (_, r) => (
         <Space>
           <Button type="text" icon={<EditOutlined />} onClick={() => openTagModal(r)}>编辑</Button>
@@ -287,10 +295,11 @@ const AdminProjectManage = () => {
   ];
 
   const cateTableColumns = [
-    { title: '分类名称', dataIndex: 'name' },
-    { title: '排序', dataIndex: 'sort_num' },
+    { title: '分类名称', dataIndex: 'name', width: 180 },
+    { title: '排序', dataIndex: 'sort_num', width: 100 },
     {
       title: '操作',
+      width: 180,
       render: (_, r) => (
         <Space>
           <Button type="text" icon={<EditOutlined />} onClick={() => openCateModal(r)}>编辑</Button>
@@ -303,17 +312,16 @@ const AdminProjectManage = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       <Navbar />
-      <Content style={{ padding: 24 }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <Breadcrumb>
-            <Breadcrumb.Item onClick={() => navigate('/home')}><HomeOutlined />首页</Breadcrumb.Item>
-            <Breadcrumb.Item>管理员中心</Breadcrumb.Item>
-            <Breadcrumb.Item>项目综合管理</Breadcrumb.Item>
-          </Breadcrumb>
+      <Content style={{ padding: '30px 24px' }}>
+        <div style={{ maxWidth: 1600, margin: '0 auto' }}>
 
-          <Card>
+          <Card 
+            bordered={false}
+            style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+            title={<Title level={4} style={{ margin: 0, color: '#9C706A' }}>项目综合管理</Title>}
+          >
             <Tabs defaultActiveKey="1" type="card" size="large">
               <TabPane tab="项目管理" key="1">
                 <div style={{ padding: '8px 0' }}>
@@ -328,9 +336,9 @@ const AdminProjectManage = () => {
                         <Option value="rejected">已驳回</Option>
                       </Select>
                     </Col>
-                    <Col xs={24} sm={10}>
+                    <Col xs={24} sm={10} style={{ textAlign: 'right' }}>
                       <Space>
-                        <Button onClick={() => handleBatchAudit('active')}>批量通过</Button>
+                        <Button type="primary" onClick={() => handleBatchAudit('active')} style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>批量通过</Button>
                         <Button danger onClick={() => handleBatchAudit('rejected')}>批量驳回</Button>
                       </Space>
                     </Col>
@@ -343,6 +351,7 @@ const AdminProjectManage = () => {
                     columns={columns}
                     dataSource={projectList}
                     pagination={{ pageSize: 10 }}
+                    scroll={{ x: 'auto' }}
                   />
                 </div>
               </TabPane>
@@ -350,7 +359,7 @@ const AdminProjectManage = () => {
               <TabPane tab="标签管理" key="2">
                 <div style={{ padding: '8px 0' }}>
                   <div style={{ marginBottom: 16, textAlign: 'right' }}>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => openTagModal()}>新增标签</Button>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => openTagModal()} style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>新增标签</Button>
                   </div>
                   <Table
                     rowKey="id"
@@ -358,6 +367,7 @@ const AdminProjectManage = () => {
                     columns={tagTableColumns}
                     dataSource={tagList}
                     pagination={{ pageSize: 10 }}
+                    scroll={{ x: 'auto' }}
                   />
                 </div>
               </TabPane>
@@ -365,7 +375,7 @@ const AdminProjectManage = () => {
               <TabPane tab="分类管理" key="3">
                 <div style={{ padding: '8px 0' }}>
                   <div style={{ marginBottom: 16, textAlign: 'right' }}>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => openCateModal()}>新增分类</Button>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => openCateModal()} style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>新增分类</Button>
                   </div>
                   <Table
                     rowKey="id"
@@ -373,6 +383,7 @@ const AdminProjectManage = () => {
                     columns={cateTableColumns}
                     dataSource={cateList}
                     pagination={{ pageSize: 10 }}
+                    scroll={{ x: 'auto' }}
                   />
                 </div>
               </TabPane>
@@ -385,12 +396,12 @@ const AdminProjectManage = () => {
         {currentDetail && (
           <div>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <Image width={250} src={fixImageUrl(currentDetail.cover)} fallback="https://via.placeholder.com/250" />
+              <Image width={250} style={{ borderRadius: 8 }} src={fixImageUrl(currentDetail.cover)} fallback="https://via.placeholder.com/250" />
             </div>
             <Descriptions bordered column={1}>
               <Descriptions.Item label="项目名称">{currentDetail.title}</Descriptions.Item>
               <Descriptions.Item label="分类">{categoryMap[currentDetail.category] || currentDetail.category}</Descriptions.Item>
-              <Descriptions.Item label="标签">{currentDetail.tags}</Descriptions.Item>
+              <Descriptions.Item label="标签">{currentDetail.tags || '-'}</Descriptions.Item>
               <Descriptions.Item label="地址">{currentDetail.address}</Descriptions.Item>
               <Descriptions.Item label="开始时间">{currentDetail.start_time}</Descriptions.Item>
               <Descriptions.Item label="结束时间">{currentDetail.end_time}</Descriptions.Item>
@@ -407,10 +418,10 @@ const AdminProjectManage = () => {
         <Form form={tagForm} layout="vertical" onFinish={handleSaveTag}>
           <Form.Item name="name" label="标签名称" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="sort_num" label="排序"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
-          <div style={{ textAlign: 'right' }}>
+          <div style={{ textAlign: 'right', marginTop: 16 }}>
             <Space>
               <Button onClick={() => setTagModalVisible(false)}>取消</Button>
-              <Button type="primary" htmlType="submit">保存</Button>
+              <Button type="primary" htmlType="submit" style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>保存</Button>
             </Space>
           </div>
         </Form>
@@ -420,10 +431,10 @@ const AdminProjectManage = () => {
         <Form form={cateForm} layout="vertical" onFinish={handleSaveCate}>
           <Form.Item name="name" label="分类名称" rules={[{ required: true }]}><Input /></Form.Item>
           <Form.Item name="sort_num" label="排序"><InputNumber min={0} style={{ width: '100%' }} /></Form.Item>
-          <div style={{ textAlign: 'right' }}>
+          <div style={{ textAlign: 'right', marginTop: 16 }}>
             <Space>
               <Button onClick={() => setCateModalVisible(false)}>取消</Button>
-              <Button type="primary" htmlType="submit">保存</Button>
+              <Button type="primary" htmlType="submit" style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>保存</Button>
             </Space>
           </div>
         </Form>

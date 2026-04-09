@@ -146,26 +146,28 @@ const VisitorProfile = () => {
   };
 
   return (
-    <Layout style={{minHeight:'100vh',backgroundColor:'#f9f9f9'}}>
+    <Layout style={{minHeight:'100vh',backgroundColor:'#f9f5f1'}}>
       <Navbar/>
       <Content style={{padding:'24px'}}>
         <div style={{maxWidth:1000,margin:'0 auto'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24}}>
-            <Title level={2} style={{margin:0}}>访客个人中心</Title>
+            <Title level={2} style={{margin:0,color:'#9C706A'}}>访客个人中心</Title>
             <Button icon={<LogoutOutlined/>} danger onClick={handleLogout}>退出登录</Button>
           </div>
 
           <Card
             title="访客基本信息"
             loading={loading}
+            bordered={false}
+            style={{marginBottom:24,borderRadius:12,boxShadow:'0 1px 8px rgba(0,0,0,0.06)'}}
             extra={
               <Button
                 icon={editable?<SaveOutlined/>:<EditOutlined/>}
                 onClick={editable?handleSave:()=>setEditable(true)}
                 loading={loading}
+                style={{backgroundColor:editable?'#9C706A':'',borderColor:editable?'#9C706A':'',color:editable?'#fff':''}}
               >{editable?'保存信息':'编辑信息'}</Button>
             }
-            style={{marginBottom:24}}
           >
             <Row gutter={[24,24]} align="middle">
               <Col xs={24} md={6} style={{textAlign:'center'}}>
@@ -191,12 +193,22 @@ const VisitorProfile = () => {
             </Row>
           </Card>
 
-          <Card title="我的打卡" style={{marginBottom:16}} extra={<div style={{display:'flex',gap:8}}><Button onClick={()=>navigate('/user/checkins')}>查看更多</Button><Button type="primary" icon={<PlusOutlined/>} onClick={()=>navigate('/user/checkin/add')}>添加打卡</Button></div>}>
+          <Card 
+            title="我的打卡" 
+            bordered={false}
+            style={{marginBottom:16,borderRadius:12,boxShadow:'0 1px 8px rgba(0,0,0,0.06)'}} 
+            extra={
+              <div style={{display:'flex',gap:8}}>
+                <Button onClick={()=>navigate('/user/checkins')}>查看更多</Button>
+                <Button onClick={()=>navigate('/user/checkin/add')} style={{backgroundColor:'#9C706A',borderColor:'#9C706A',color:'#fff'}} icon={<PlusOutlined/>}>添加打卡</Button>
+              </div>
+            }
+          >
             {listLoading?<Card loading/>:checkins.length>0?(
               <Row gutter={[12,12]}>
                 {checkins.slice(0,3).map(item=>(
                   <Col xs={8} key={item.id}>
-                    <Card hoverable style={{borderRadius:8}} bodyStyle={{padding:10}}>
+                    <Card hoverable bordered={false} style={{borderRadius:8}} bodyStyle={{padding:10}}>
                       <Image height={120} src={fixImg(item.image)}/>
                       <div style={{fontSize:13,marginTop:8,fontWeight:500}}>{item.title}</div>
                       <div style={{marginTop:4}}>{getStatusTag(item.status)}</div>
@@ -208,12 +220,17 @@ const VisitorProfile = () => {
             ):<Typography.Text type="secondary">暂无打卡</Typography.Text>}
           </Card>
 
-          <Card title="我的收藏" style={{marginBottom:16}} extra={<Button onClick={()=>navigate('/user/favorites')}>查看更多</Button>}>
+          <Card 
+            title="我的收藏" 
+            bordered={false}
+            style={{marginBottom:16,borderRadius:12,boxShadow:'0 1px 8px rgba(0,0,0,0.06)'}} 
+            extra={<Button onClick={()=>navigate('/user/favorites')}>查看更多</Button>}
+          >
             {listLoading?<Card loading/>:favorites.length>0?(
               <Row gutter={[12,12]}>
                 {favorites.slice(0,3).map(item=>(
                   <Col xs={8} sm={8} key={item.project_id}>
-                    <Card hoverable style={{borderRadius:8,height:'100%'}} bodyStyle={{padding:10}}>
+                    <Card hoverable bordered={false} style={{borderRadius:8,height:'100%'}} bodyStyle={{padding:10}}>
                       <Image height={130} width="100%" style={{objectFit:'cover'}} src={fixImg(item.cover)}/>
                       <div style={{fontSize:13,marginTop:8,fontWeight:500}}>{item.title}</div>
                     </Card>
@@ -223,12 +240,17 @@ const VisitorProfile = () => {
             ):<Typography.Text type="secondary">暂无收藏</Typography.Text>}
           </Card>
 
-          <Card title="我的点赞" style={{marginBottom:16}} extra={<Button onClick={()=>navigate('/user/likes')}>查看更多</Button>}>
+          <Card 
+            title="我的点赞" 
+            bordered={false}
+            style={{marginBottom:16,borderRadius:12,boxShadow:'0 1px 8px rgba(0,0,0,0.06)'}} 
+            extra={<Button onClick={()=>navigate('/user/likes')}>查看更多</Button>}
+          >
             {listLoading?<Card loading/>:likes.length>0?(
               <Row gutter={[12,12]}>
                 {likes.slice(0,3).map(item=>(
                   <Col xs={8} sm={8} key={item.project_id}>
-                    <Card hoverable style={{borderRadius:8,height:'100%'}} bodyStyle={{padding:10}}>
+                    <Card hoverable bordered={false} style={{borderRadius:8,height:'100%'}} bodyStyle={{padding:10}}>
                       <Image height={130} width="100%" style={{objectFit:'cover'}} src={fixImg(item.cover)}/>
                       <div style={{fontSize:13,marginTop:8,fontWeight:500}}>{item.title}</div>
                     </Card>
@@ -238,8 +260,12 @@ const VisitorProfile = () => {
             ):<Typography.Text type="secondary">暂无点赞</Typography.Text>}
           </Card>
 
-          {/* ✅ 修复：这里把 li 全部换成 div */}
-          <Card title="我的评论" extra={<Button onClick={()=>navigate('/user/comments')}>查看更多</Button>}>
+          <Card 
+            title="我的评论" 
+            bordered={false}
+            style={{marginBottom:16,borderRadius:12,boxShadow:'0 1px 8px rgba(0,0,0,0.06)'}}
+            extra={<Button onClick={()=>navigate('/user/comments')}>查看更多</Button>}
+          >
             {listLoading ? (
               <Card loading />
             ) : comments.length > 0 ? (
@@ -254,8 +280,8 @@ const VisitorProfile = () => {
                       border: 'none',
                       borderRadius: 8,
                       marginBottom: 8,
+                      backgroundColor:'#fff'
                     }}
-                    className="ant-list-item"
                   >
                     <div style={{ fontWeight: 500 }}>{item.title}</div>
                     <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>

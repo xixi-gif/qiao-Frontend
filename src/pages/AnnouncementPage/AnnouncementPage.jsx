@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Table, Button, Space, Typography, Tag, Popconfirm, message, Card } from 'antd';
-import { DeleteOutlined, EyeOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../../service/api';
 import Navbar from '../../../public/Nav/nav';
@@ -101,25 +101,20 @@ const AnnouncementList = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       <Navbar />
-      <Content style={{ padding: '24px 0' }}>
+      <Content style={{ padding: '24px' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto', width: '90%' }}>
-          <Card style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Title level={2} style={{ margin: 0 }}>公告管理</Title>
-              <Space>
- 
-                {isAdmin && (
-                  <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/admin/announcement-publish')}>
-                    发布公告
-                  </Button>
-                )}
-              </Space>
-            </div>
-          </Card>
-
-          <Card>
+          <Card
+            title={<Title level={2} style={{ margin: 0, textAlign: 'center', color: '#9C706A' }}>公告资讯中心</Title>}
+            extra={
+              isAdmin ? (
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/admin/announcement-publish')} style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>
+                  发布公告
+                </Button>
+              ) : null
+            }
+          >
             <Table
               rowKey="id"
               loading={loading}

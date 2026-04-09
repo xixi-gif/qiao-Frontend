@@ -13,11 +13,6 @@ service.interceptors.request.use(config=>{
 },error=>Promise.reject(error));
 
 service.interceptors.response.use(res=>res,error=>{
-  if(error.response?.status===401){
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userInfo');
-    window.location.href='/login';
-  }
   return Promise.reject(error);
 });
 
@@ -77,7 +72,9 @@ const projectApi = {
   getMerchantInfo:(merchantId)=>service.get(`/tourism/merchant/${merchantId}`),
   addProjectView:(id)=>service.post(`/tourism/projects/${id}/view`),
   getMyCheckins:()=>service.get('/checkin/my'),
-  createCheckin:(data)=>service.post('/checkin',data),
+  createCheckin: (formData) => service.post('/checkin', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
   getCheckinDetail:(id)=>service.get(`/checkin/${id}`),
   updateCheckin:(id,data)=>service.put(`/checkin/${id}`,data),
   deleteCheckin:(id)=>service.delete(`/checkin/${id}`),
@@ -145,9 +142,9 @@ const markdownApi = {
   delete:(id)=>service.delete(`/markdown/${id}`),
   uploadImage:(formData)=>service.post('/markdown/image',formData,{headers:{'Content-Type':'multipart/form-data'}}),
   batchUpload:(formData)=>service.post('/markdown/batch-upload',formData,{headers:{'Content-Type':'multipart/form-data'}}),
-  toggleFavorite: (docId) => service.post(`/markdown/favorite/${docId}`),
-  getMyFavorites: () => service.get("/markdown/my/favorites"),
-  getMyFavoriteIds: () => service.get("/markdown/my/favorite-ids"),
+  toggleFavorite: (docId, user_id) => service.post(`/markdown/favorite/${docId}`, {}, { params: { user_id } }),
+  getMyFavorites: (user_id) => service.get("/markdown/my/favorites", { params: { user_id } }),
+  getMyFavoriteIds: (user_id) => service.get("/markdown/my/favorite-ids", { params: { user_id } }),
   getKnowledgeGraph: () => service.get("/graph") ,
 };
 
@@ -181,8 +178,32 @@ const qiaoxiangAiApi = {
 };
 
 const adminApi = {
-  getStatistics: (params) => service.get('/admin/statistics/dashboard', { params }),
-  getTrend: (params) => service.get('/admin/statistics/trend', { params })
+  getDashboard: (params) => service.get('/admin/statistics/dashboard', { params }),
+  getTrend: (params) => service.get('/admin/statistics/trend', { params }),
+  getUserActivity: () => service.get('/admin/statistics/user-activity'),
+  getMerchantActivity: () => service.get('/admin/statistics/merchant-activity'),
+  getTopProjects: () => service.get('/admin/statistics/top-projects'),
+  getTopMerchants: () => service.get('/admin/statistics/top-merchants'),
+  getTopUsers: () => service.get('/admin/statistics/top-users'),
+  getMerchantStatus: () => service.get('/admin/statistics/merchant-status')
+};
+
+const riverApi = {
+  getRiverImages: () => service.get("/river/images"),
+  getRiverMessages: () => service.get("/river/messages"),
+  addRiverMessage: (data) => service.post("/river/messages", data)
+};
+
+const studyApi = {
+  getImages:()=>service.get('/study/images')
+};
+
+const messageApi = {
+  getList: () => service.get('/river/messages'),
+  create: (data) => service.post('/river/messages', data),
+  delete: (id) => service.delete(`/river/messages/${id}`),
+  batchDelete: (ids) => service.post('/river/messages/batch_delete', { ids }),
+  getImages: () => service.get('/river/images')
 };
 
 export default {
@@ -199,5 +220,8 @@ export default {
   chatApi,
   qiaoxiangAiApi,
   merchantApi,
-  adminApi
+  adminApi,
+  riverApi,
+  studyApi,
+  messageApi
 };

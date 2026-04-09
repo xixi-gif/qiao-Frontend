@@ -35,7 +35,7 @@ const AdminProfile = () => {
 
   const loadStats = async () => {
     try {
-      const res = await api.adminApi.getStatistics({ period: 'month' });
+      const res = await api.adminApi.getDashboard({ period: 'month' });
       if (res.data.code === 200) {
         setStats({
           total_users: res.data.data.total_users || 0,
@@ -138,14 +138,15 @@ const AdminProfile = () => {
     : { icon: <CrownOutlined /> };
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       <Navbar />
-      <Content style={{ padding: '24px' }}>
+      <Content style={{ padding: '30px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <Card
-            title="管理员基本信息"
-            bordered
+            title={<Title level={4} style={{ margin: 0, color: '#9C706A' }}>管理员基本信息</Title>}
+            bordered={false}
             loading={loading}
+            style={{ marginBottom: '24px', borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
             extra={
               <Space>
                 <Button danger icon={<LogoutOutlined />} onClick={handleLogout}>退出登录</Button>
@@ -154,12 +155,12 @@ const AdminProfile = () => {
                   icon={editable ? <SaveOutlined /> : <EditOutlined />}
                   onClick={editable ? handleSave : () => setEditable(true)}
                   loading={loading}
+                  style={editable ? { backgroundColor: '#9C706A', borderColor: '#9C706A' } : {}}
                 >
                   {editable ? '保存信息' : '编辑信息'}
                 </Button>
               </Space>
             }
-            style={{ marginBottom: '24px' }}
           >
             <Row gutter={[24, 24]} align="middle">
               <Col xs={24} md={6} style={{ textAlign: 'center' }}>
@@ -211,17 +212,17 @@ const AdminProfile = () => {
 
           <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
             <Col xs={24} md={8}>
-              <Card>
+              <Card bordered={false} style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <Statistic title="总用户数" value={stats.total_users} prefix={<UsergroupAddOutlined />} />
               </Card>
             </Col>
             <Col xs={24} md={8}>
-              <Card>
+              <Card bordered={false} style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <Statistic title="商家数" value={stats.total_merchants} prefix={<ShopOutlined />} />
               </Card>
             </Col>
             <Col xs={24} md={8}>
-              <Card>
+              <Card bordered={false} style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
                 <Statistic title="资源总数" value={stats.total_markdown} prefix={<BarChartOutlined />} />
               </Card>
             </Col>

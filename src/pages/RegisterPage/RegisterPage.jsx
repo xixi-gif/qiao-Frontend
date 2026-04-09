@@ -59,175 +59,218 @@ const RegisterPage = () => {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: '100vh',
-      backgroundColor: '#f0f2f5',
-      padding: '24px',
       width: '100%',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      backgroundImage: 'url("../../../public/img/2.jpg")',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed'
     }}>
-      <Card 
-        style={{ 
-          maxWidth: 400, 
-          width: '100%',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-          borderRadius: 8,
-          border: 'none',
-          padding: '24px'
-        }}
-      >
-        <div style={{ 
-          textAlign: 'center', 
-          marginBottom: 24 
+      <div style={{
+        display: 'flex',
+        width: '100%',
+        maxWidth: '850px',
+        height: '700px',
+        backgroundColor: '#fff',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+        overflow: 'hidden',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          width: '400px',
+          padding: '0 30px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center'
         }}>
-          <h1 style={{ 
-            fontSize: 24, 
-            fontWeight: 600, 
-            color: 'rgba(0, 0, 0, 0.85)',
-            margin: 0
-          }}>
-            注册
-          </h1>
+          <Card 
+            style={{ 
+              width: '100%',
+              boxShadow: 'none',
+              border: 'none',
+              padding: '24px'
+            }}
+          >
+            <div style={{ 
+              textAlign: 'left', 
+              marginBottom: 24 
+            }}>
+              <h1 style={{ 
+                fontSize: 42, 
+                fontWeight: 600, 
+                color: '#9C706A',
+                margin: 0
+              }}>
+                注册
+              </h1>
+            </div>
+
+            <Form
+              name="register_form"
+              initialValues={{}}
+              onFinish={onFinish}
+              onFinishFailed={onFinishFailed}
+              scrollToFirstError
+              layout="vertical"
+            >
+              <Form.Item
+                name="role"
+                label={<span style={{ color: '#9C706A', fontWeight: 'bold' }}>请选择身份</span>}
+                rules={[{ required: true, message: '请选择您的身份' }]}
+                style={{ marginBottom: 16 }}
+              >
+                <Select
+                  value={role}
+                  onChange={(value) => setRole(value)}
+                  size="large"
+                  placeholder="请选择身份"
+                  showSearch
+                  filterOption={(input, option) => 
+                    option.children.toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {roleOptions.map((item) => (
+                    <Option key={item.value} value={item.value}>
+                      <span style={{ display: 'flex', alignItems: 'center' }}>
+                        {item.icon}
+                        <span style={{ marginLeft: 8 }}>{item.label}</span>
+                      </span>
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item
+                name="nickname"
+                label={<span style={{ color: '#9C706A', fontWeight: 'bold' }}>用户名</span>}
+                rules={[
+                  { required: true, message: '请设置用户名' },
+                  { min: 2, message: '用户名至少2个字符' },
+                  { max: 16, message: '用户名最多16个字符' }
+                ]}
+              >
+                <Input 
+                  prefix={<UserOutlined />} 
+                  placeholder="请设置您的用户名" 
+                  size="large"
+                  disabled={loading}
+                  maxLength={16}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="username"
+                label={<span style={{ color: '#9C706A', fontWeight: 'bold' }}>手机号</span>}
+                rules={[
+                  { required: true, message: '请输入手机号' },
+                  { 
+                    pattern: /^1[3-9]\d{9}$/, 
+                    message: '请输入正确的11位手机号' 
+                  }
+                ]}
+              >
+                <Input 
+                  prefix={<UserOutlined />} 
+                  placeholder="请输入11位手机号" 
+                  size="large"
+                  disabled={loading}
+                  maxLength={11}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="password"
+                label={<span style={{ color: '#9C706A', fontWeight: 'bold' }}>密码</span>}
+                rules={[
+                  { required: true, message: '请输入密码' },
+                  { min: 6, message: '密码至少6个字符' }
+                ]}
+                hasFeedback
+              >
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="请输入密码"
+                  size="large"
+                  disabled={loading}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="confirm"
+                label={<span style={{ color: '#9C706A', fontWeight: 'bold' }}>确认密码</span>}
+                dependencies={['password']}
+                rules={[
+                  { required: true, message: '请确认密码' },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue('password') === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(new Error('两次输入的密码不一致'));
+                    },
+                  }),
+                ]}
+                hasFeedback
+              >
+                <Input.Password
+                  prefix={<LockOutlined />}
+                  placeholder="请再次输入密码"
+                  size="large"
+                  disabled={loading}
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Button 
+                  type="primary" 
+                  htmlType="submit" 
+                  size="large"
+                  style={{ width: '100%', height: 40, backgroundColor: '#9C706A', borderColor: '#9C706A' }}
+                  loading={loading}
+                >
+                  注册
+                </Button>
+              </Form.Item>
+
+              <div style={{ textAlign: 'center', color: '#9C706A', fontWeight: 'bold' }}>
+                已有账号? <a 
+                  href="/login" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/login');
+                  }}
+                  style={{ color: '#345276' }}
+                >
+                  立即登录
+                </a>
+              </div>
+            </Form>
+          </Card>
         </div>
 
-        <Form
-          name="register_form"
-          initialValues={{}}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
-          scrollToFirstError
-          layout="vertical"
-        >
-          <Form.Item
-            name="role"
-            label="请选择身份"
-            rules={[{ required: true, message: '请选择您的身份' }]}
-            style={{ marginBottom: 16 }}
-          >
-            <Select
-              value={role}
-              onChange={(value) => setRole(value)}
-              size="large"
-              placeholder="请选择身份"
-              showSearch
-              filterOption={(input, option) => 
-                option.children.toLowerCase().includes(input.toLowerCase())
-              }
-            >
-              {roleOptions.map((item) => (
-                <Option key={item.value} value={item.value}>
-                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                    {item.icon}
-                    <span style={{ marginLeft: 8 }}>{item.label}</span>
-                  </span>
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="nickname"
-            label="用户名"
-            rules={[
-              { required: true, message: '请设置用户名' },
-              { min: 2, message: '用户名至少2个字符' },
-              { max: 16, message: '用户名最多16个字符' }
-            ]}
-          >
-            <Input 
-              prefix={<UserOutlined />} 
-              placeholder="请设置您的用户名" 
-              size="large"
-              disabled={loading}
-              maxLength={16}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="username"
-            label="手机号"
-            rules={[
-              { required: true, message: '请输入手机号' },
-              { 
-                pattern: /^1[3-9]\d{9}$/, 
-                message: '请输入正确的11位手机号' 
-              }
-            ]}
-          >
-            <Input 
-              prefix={<UserOutlined />} 
-              placeholder="请输入11位手机号" 
-              size="large"
-              disabled={loading}
-              maxLength={11}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            label="密码"
-            rules={[
-              { required: true, message: '请输入密码' },
-              { min: 6, message: '密码至少6个字符' }
-            ]}
-            hasFeedback
-          >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="请输入密码"
-              size="large"
-              disabled={loading}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="confirm"
-            label="确认密码"
-            dependencies={['password']}
-            rules={[
-              { required: true, message: '请确认密码' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('两次输入的密码不一致'));
-                },
-              }),
-            ]}
-            hasFeedback
-          >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="请再次输入密码"
-              size="large"
-              disabled={loading}
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              size="large"
-              style={{ width: '100%', height: 40, marginBottom: 16 }}
-              loading={loading}
-            >
-              注册
-            </Button>
-          </Form.Item>
-
-          <div style={{ textAlign: 'center', color: 'rgba(0, 0, 0, 0.65)' }}>
-            已有账号? <a 
-              href="/login" 
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/login');
-              }}
-            >
-              立即登录
-            </a>
-          </div>
-        </Form>
-      </Card>
+        <div style={{
+          flex: 'none',
+          width: '420px',
+          height: '600px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <img
+            src="../../../public/img/1.jpg"
+            alt="login-bg"
+            style={{
+              width: 'auto',
+              height: '90%',
+              maxWidth: '90%',
+              objectFit: 'cover',
+              borderRadius: '12px'
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 };

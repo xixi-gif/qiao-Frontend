@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Table, Card, Button, Space, Tag, Breadcrumb, Modal, Descriptions, Image, Popconfirm, message } from 'antd';
+import { Layout, Table, Card, Button, Space, Tag, Modal, Descriptions, Image, Popconfirm, message, Typography } from 'antd';
 import { HomeOutlined, EyeOutlined, DeleteOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../public/Nav/nav';
 import api from '../../service/api';
 
 const { Content } = Layout;
+const { Title } = Typography;
 
 const AdminCheckinManage = () => {
   const navigate = useNavigate();
@@ -19,7 +20,9 @@ const AdminCheckinManage = () => {
     setLoading(true);
     try {
       const res = await api.projectApi.adminGetAllCheckins();
-      setCheckinList(res.data || []);
+      const list = res.data || [];
+      list.sort((a, b) => new Date(b.create_time) - new Date(a.create_time));
+      setCheckinList(list);
     } catch (err) {
       message.error('加载失败');
     } finally {
@@ -57,7 +60,6 @@ const AdminCheckinManage = () => {
     }
   };
 
-  // 批量通过（优化 实时刷新）
   const handleBatchPass = () => {
     if (selectedRowKeys.length === 0) return message.warning('请选择数据');
     Modal.confirm({
@@ -78,7 +80,6 @@ const AdminCheckinManage = () => {
     });
   };
 
-  // 批量驳回（优化 实时刷新）
   const handleBatchReject = () => {
     if (selectedRowKeys.length === 0) return message.warning('请选择数据');
     Modal.confirm({
@@ -123,27 +124,44 @@ const AdminCheckinManage = () => {
     {
       title: '打卡照片',
       dataIndex: 'image',
+      width: 100,
       render: (img) => (
         <Image
           width={50}
           height={50}
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: 'cover', borderRadius: 4 }}
           src={fixUrl(img)}
           fallback="https://via.placeholder.com/50"
         />
       ),
     },
-    { title: '用户', dataIndex: 'username' },
-    { title: '标题', dataIndex: 'title' },
-    { title: '内容', dataIndex: 'content' },
-    { title: '状态', dataIndex: 'status', render: renderStatus },
-    { title: '时间', dataIndex: 'create_time' },
+    {
+      title: '用户',
+      dataIndex: 'username',
+      width: 120,
+      render: (text) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>{text}</div>
+    },
+    {
+      title: '标题',
+      dataIndex: 'title',
+      width: 180,
+      render: (text) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>{text}</div>
+    },
+    {
+      title: '内容',
+      dataIndex: 'content',
+      width: 280,
+      render: (text) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>{text}</div>
+    },
+    { title: '状态', dataIndex: 'status', width: 100, render: renderStatus },
+    { title: '时间', dataIndex: 'create_time', width: 180 },
     {
       title: '操作',
+      width: 300,
       render: (_, r) => (
-        <Space>
+        <Space size="small">
           <Button type="text" icon={<EyeOutlined />} onClick={() => fetchDetail(r.id)}>查看</Button>
-          {r.status === 'pending' && <Button type="text" icon={<CheckOutlined />} onClick={() => handleAudit(r.id, 'approved')}>通过</Button>}
+          {r.status === 'pending' && <Button type="text" style={{ color: '#52c41a' }} icon={<CheckOutlined />} onClick={() => handleAudit(r.id, 'approved')}>通过</Button>}
           {r.status === 'pending' && <Button type="text" danger icon={<CloseOutlined />} onClick={() => handleAudit(r.id, 'rejected')}>驳回</Button>}
           <Popconfirm title="确定删除？" onConfirm={() => handleDelete(r.id)}>
             <Button type="text" danger icon={<DeleteOutlined />}>删除</Button>
@@ -154,24 +172,20 @@ const AdminCheckinManage = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       <Navbar />
-      <Content style={{ padding: 24 }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <Breadcrumb>
-            <Breadcrumb.Item onClick={() => navigate('/home')}><HomeOutlined />首页</Breadcrumb.Item>
-            <Breadcrumb.Item>管理员中心</Breadcrumb.Item>
-            <Breadcrumb.Item>打卡墙管理</Breadcrumb.Item>
-          </Breadcrumb>
-
-          <Card>
-            <div style={{ marginBottom: 16, textAlign: 'right' }}>
+      <Content style={{ padding: '30px 24px' }}>
+        <div style={{ maxWidth: 1600, margin: '0 auto' }}>
+          <Card
+            style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+            title={<Title level={4} style={{ margin: 0, color: '#9C706A' }}>打卡审核管理</Title>}
+            extra={
               <Space>
-                <Button onClick={handleBatchPass}>批量通过</Button>
+                <Button type="primary" onClick={handleBatchPass} style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>批量通过</Button>
                 <Button danger onClick={handleBatchReject}>批量驳回</Button>
               </Space>
-            </div>
-
+            }
+          >
             <Table
               rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
               loading={loading}
@@ -179,6 +193,7 @@ const AdminCheckinManage = () => {
               columns={columns}
               dataSource={checkinList}
               pagination={{ pageSize: 10 }}
+              scroll={{ x: 'auto' }}
             />
           </Card>
         </div>
@@ -188,12 +203,12 @@ const AdminCheckinManage = () => {
         {currentDetail && (
           <div>
             <div style={{ textAlign: 'center', marginBottom: 20 }}>
-              <Image width={250} src={fixUrl(currentDetail.image)} fallback="https://via.placeholder.com/250" />
+              <Image width={250} style={{ borderRadius: 8 }} src={fixUrl(currentDetail.image)} fallback="https://via.placeholder.com/250" />
             </div>
             <Descriptions bordered column={1}>
               <Descriptions.Item label="标题">{currentDetail.title}</Descriptions.Item>
               <Descriptions.Item label="内容">{currentDetail.content}</Descriptions.Item>
-              <Descriptions.Item label="标签">{currentDetail.tags}</Descriptions.Item>
+              <Descriptions.Item label="标签">{currentDetail.tags || '-'}</Descriptions.Item>
               <Descriptions.Item label="状态">{renderStatus(currentDetail.status)}</Descriptions.Item>
               <Descriptions.Item label="时间">{currentDetail.create_time}</Descriptions.Item>
             </Descriptions>

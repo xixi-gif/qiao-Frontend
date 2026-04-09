@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Card, Image, Typography, Row, Col, Button, Breadcrumb, Input, message } from "antd";
-import { ArrowLeftOutlined, HomeOutlined, SearchOutlined, MessageOutlined } from "@ant-design/icons";
+import { Layout, Card, Image, Typography, Row, Col, Button, Input, message } from "antd";
+import { ArrowLeftOutlined, SearchOutlined, MessageOutlined } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../../../public/Nav/nav";
 import api from "../../service/api";
 
 const { Content } = Layout;
 const { Title } = Typography;
-const { Search } = Input;
 
 const MerchantUserPage = () => {
   const { id } = useParams();
@@ -26,10 +25,7 @@ const MerchantUserPage = () => {
         return;
       }
 
-      // 调用创建会话接口
       const res = await api.chatApi.createConversation(user.id, parseInt(id));
-
-      // ✅ 修复：axios 必须用 .data
       const conversation = res.data;
 
       if (conversation?.id) {
@@ -54,7 +50,7 @@ const MerchantUserPage = () => {
   }, [id]);
 
   if (loading) return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f5f1" }}>
       <Navbar />
       <Content style={{ padding: 24 }}>
         <Card loading style={{ maxWidth: 1000, margin: "0 auto" }} />
@@ -63,7 +59,7 @@ const MerchantUserPage = () => {
   );
 
   if (!userInfo) return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f5f1" }}>
       <Navbar />
       <Content style={{ padding: 24 }}>
         <div style={{ maxWidth: 1000, margin: "0 auto" }}>
@@ -78,16 +74,10 @@ const MerchantUserPage = () => {
   );
 
   return (
-    <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f9f9" }}>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f5f1" }}>
       <Navbar />
       <Content style={{ padding: "24px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <Breadcrumb style={{ marginBottom: 16 }}>
-            <Breadcrumb.Item onClick={() => navigate("/tourism/projects")}>
-              <HomeOutlined />首页
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>商家主页</Breadcrumb.Item>
-          </Breadcrumb>
 
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>
             返回
@@ -98,9 +88,9 @@ const MerchantUserPage = () => {
               <Image width={100} height={100} style={{ borderRadius: "50%" }} src={fixImg(userInfo.avatar)}
                 fallback="https://picsum.photos/id/1005/100/100" />
               <div>
-                <Title level={3} style={{ margin: 0 }}>{userInfo.shopName}</Title>
+                <Title level={3} style={{ margin: 0, color: "#9C706A" }}>{userInfo.shopName}</Title>
                 <div style={{ color: "#999", marginTop: 8 }}>{userInfo.shopAddress}</div>
-                <Button type="primary" icon={<MessageOutlined />} style={{ marginTop: 12 }} onClick={handleContact}>
+                <Button type="primary" icon={<MessageOutlined />} style={{ marginTop: 12, backgroundColor: "#9C706A", borderColor: "#9C706A" }} onClick={handleContact}>
                   联系商家
                 </Button>
               </div>
@@ -108,9 +98,17 @@ const MerchantUserPage = () => {
           </Card>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <Title level={4} style={{ margin: 0 }}>TA发布的项目</Title>
-            <Search placeholder="搜索项目" allowClear enterButton={<SearchOutlined />} style={{ width: 260 }}
-              value={searchKey} onChange={(e) => setSearchKey(e.target.value)} />
+            <Title level={4} style={{ margin: 0, color: "#9C706A" }}>TA发布的项目</Title>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, width: 260 }}>
+              <Input
+                placeholder="搜索项目"
+                value={searchKey}
+                onChange={(e) => setSearchKey(e.target.value)}
+                style={{ flex: 1 }}
+                allowClear
+              />
+              <Button icon={<SearchOutlined />} style={{ backgroundColor: "#9C706A", borderColor: "#9C706A", color: "#fff" }} />
+            </div>
           </div>
 
           <Row gutter={[24, 24]}>
@@ -120,7 +118,7 @@ const MerchantUserPage = () => {
                   onClick={() => navigate(`/tour/detail/${item.id}`)}>
                   <Image height={220} width="100%" style={{ objectFit: "cover", borderRadius: 8 }}
                     src={fixImg(item.cover)} fallback="https://picsum.photos/id/1036/400/300" />
-                  <Title level={5} style={{ marginTop: 12, marginBottom: 8 }}>{item.title}</Title>
+                  <Title level={5} style={{ marginTop: 12, marginBottom: 8, color: "#9C706A" }}>{item.title}</Title>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#999" }}>
                     <span>¥{item.price}/人</span>
                     <span>{userInfo.shopName}</span>

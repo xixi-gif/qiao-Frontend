@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Space, Upload, message, Divider, Row, Col, Layout } from 'antd';
-import { SendOutlined, UploadOutlined, ClearOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Card, Space, Upload, message, Divider, Layout } from 'antd';
+import { SendOutlined, UploadOutlined, ClearOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../../public/Nav/nav';
 import api from '../../service/api';
@@ -109,78 +109,68 @@ const AnnouncementPublish = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       {contextHolder}
       <Navbar />
-      <Content style={{ padding: 24 }}>
-        <Card style={{ background: '#fff', borderRadius: 8 }}>
-          <Form form={form} layout="vertical" initialValues={{ status: 'published' }}>
-            <Row gutter={24}>
-              <Col span={18}>
-                <Form.Item
-                  name="title"
-                  label="公告标题"
-                  rules={[
-                    { required: true, message: '请输入公告标题' },
-                    { max: 100, message: '标题长度不能超过100个字符' }
-                  ]}
+      <Content style={{ padding: '40px 24px' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <Card style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+            <Form form={form} layout="vertical" initialValues={{ status: 'published' }}>
+              <Form.Item
+                name="title"
+                label="公告标题"
+                rules={[
+                  { required: true, message: '请输入公告标题' },
+                  { max: 100, message: '标题长度不能超过100个字符' }
+                ]}
+              >
+                <Input placeholder="请输入公告标题" size="large" />
+              </Form.Item>
+              <Form.Item
+                name="content"
+                label="公告内容"
+                rules={[{ required: true, message: '请输入公告内容' }]}
+              >
+                <Input.TextArea placeholder="请输入公告内容" rows={12} size="large" />
+              </Form.Item>
+              <Form.Item label="附件上传">
+                <Upload
+                  fileList={uploadFileList}
+                  listType="text"
+                  customRequest={customRequest}
+                  onChange={handleUploadChange}
+                  beforeUpload={beforeUpload}
+                  showUploadList={{ showRemoveIcon: true }}
+                  multiple={true}
                 >
-                  <Input placeholder="请输入公告标题" size="large" />
-                </Form.Item>
-                <Form.Item
-                  name="content"
-                  label="公告内容"
-                  rules={[{ required: true, message: '请输入公告内容' }]}
-                >
-                  <Input.TextArea placeholder="请输入公告内容" rows={10} size="large" />
-                </Form.Item>
-                <Form.Item label="附件上传">
-                  <Upload
-                    fileList={uploadFileList}
-                    listType="text"
-                    customRequest={customRequest}
-                    onChange={handleUploadChange}
-                    beforeUpload={beforeUpload}
-                    showUploadList={{ showRemoveIcon: true }}
-                    multiple={true}
+                  <Button icon={<UploadOutlined />}>点击上传附件（最多10MB）</Button>
+                </Upload>
+              </Form.Item>
+              <Divider />
+              <Form.Item style={{ textAlign: 'right' }}>
+                <Space size="large">
+                  <Button
+                    type="primary"
+                    icon={<SendOutlined />}
+                    loading={loading}
+                    size="large"
+                    onClick={handleSubmit}
+                    style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}
                   >
-                    <Button icon={<UploadOutlined />}>点击上传附件（最多10MB）</Button>
-                  </Upload>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Divider />
-            <Form.Item>
-              <Space orientation="horizontal" size="large">
-                <Button
-                  type="primary"
-                  icon={<SendOutlined />}
-                  loading={loading}
-                  size="large"
-                  onClick={handleSubmit}
-                >
-                  发布公告
-                </Button>
-                <Button
-                  type="default"
-                  icon={<ClearOutlined />}
-                  size="large"
-                  onClick={resetForm}
-                >
-                  重置表单
-                </Button>
-                <Button
-                  type="default"
-                  icon={<ArrowLeftOutlined />}
-                  size="large"
-                  onClick={() => navigate('/announcements')}
-                >
-                  返回列表
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </Card>
+                    发布公告
+                  </Button>
+                  <Button
+                    icon={<ClearOutlined />}
+                    size="large"
+                    onClick={resetForm}
+                  >
+                    重置表单
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Card>
+        </div>
       </Content>
     </Layout>
   );

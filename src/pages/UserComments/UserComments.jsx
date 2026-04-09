@@ -117,7 +117,7 @@ const UserComments = () => {
                 messages.map((item, idx) => (
                   <div
                     key={idx}
-                    onClick={() => { toCommentTarget(item.msg_type, item.target_id); readMessage(item.id); }}
+                    onClick={() => { toCommentTarget(item.target_type, item.target_id); readMessage(item.id); }}
                     style={{ padding: '14px 0', cursor: 'pointer', borderBottom: idx < messages.length - 1 ? '1px solid #f0f0f0' : 'none' }}
                   >
                     <div style={{ display: 'flex', gap: 12 }}>
@@ -129,8 +129,13 @@ const UserComments = () => {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 500 }}>{item.user?.username || '用户'}</div>
                         <div style={{ fontSize: 12, color: '#999' }}>{item.msg_text}</div>
+                        {item.my_original_comment && (
+                          <div style={{ fontSize: 12, color: '#888', margin: '4px 0', paddingLeft: 8, borderLeft: '2px solid #ddd' }}>
+                            我的评论：{item.my_original_comment}
+                          </div>
+                        )}
                         <div style={{ marginTop: 8, lineHeight: 1.5, background:'#f7f8fa', padding:8, borderRadius:6 }}>
-                          {item.content}
+                          回复：{item.content}
                         </div>
                         <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
                           来自：{item.target_title || '内容已删除'}

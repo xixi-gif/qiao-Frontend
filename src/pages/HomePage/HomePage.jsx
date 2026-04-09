@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Layout, Typography, Row, Col, Card, Button, Space, Divider, Carousel } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Layout, Typography, Row, Col, Card, Button, Space, Carousel } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { LogoutOutlined, BookOutlined, EnvironmentOutlined, CompassOutlined, HistoryOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { BookOutlined, ArrowRightOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import Navbar from '../../../public/Nav/nav';
 import api from '../../service/api';
+import * as echarts from 'echarts';
+import chinaMap from '../../assets/world.json';
+import { mapConfig, chart1Config, chart2Config, chart3Config, chart4Config } from './chartConfig';
+import { qiaoxiangList } from './qiaoxiangData';
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -11,17 +15,18 @@ const { Title, Paragraph, Text } = Typography;
 const HomePage = () => {
   const navigate = useNavigate();
   const [carouselList, setCarouselList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const chartRef = useRef(null);
+  const chart1 = useRef(null);
+  const chart2 = useRef(null);
+  const chart3 = useRef(null);
+  const chart4 = useRef(null);
+  const sliderRef = useRef(null);
 
   const fetchCarousels = async () => {
     try {
       const res = await api.carouselApi.getList({ skip: 0, limit: 10 });
       setCarouselList(res.data);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -29,78 +34,169 @@ const HomePage = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('username');
-    localStorage.removeItem('userInfo');
-    localStorage.removeItem('accessToken');
+    localStorage.clear();
     navigate('/login');
   };
 
+  const handlePrev = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: -350, behavior: 'smooth' });
+    }
+  };
+
+  const handleNext = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const myChart = echarts.init(chartRef.current);
+    echarts.registerMap('world', chinaMap);
+
+    setTimeout(() => {
+      myChart.setOption(mapConfig);
+    }, 300);
+
+    const ob = new ResizeObserver(() => myChart.resize());
+    ob.observe(chartRef.current);
+    return () => { ob.disconnect(); myChart.dispose(); };
+  }, []);
+
+  useEffect(() => {
+    const c1 = echarts.init(chart1.current);
+    c1.setOption(chart1Config);
+    const o1 = new ResizeObserver(()=>c1.resize());
+    o1.observe(chart1.current);
+    return ()=>{o1.disconnect();c1.dispose();}
+  },[])
+
+  useEffect(() => {
+    const c2 = echarts.init(chart2.current);
+    c2.setOption(chart2Config);
+    const o2 = new ResizeObserver(()=>c2.resize());
+    o2.observe(chart2.current);
+    return ()=>{o2.disconnect();c2.dispose();}
+  },[])
+
+  useEffect(() => {
+    const c3 = echarts.init(chart3.current);
+    c3.setOption(chart3Config);
+    const o3 = new ResizeObserver(()=>c3.resize());
+    o3.observe(chart3.current);
+    return ()=>{o3.disconnect();c3.dispose();}
+  },[])
+
+  useEffect(() => {
+    const c4 = echarts.init(chart4.current);
+    c4.setOption(chart4Config);
+    const o4 = new ResizeObserver(()=>c4.resize());
+    o4.observe(chart4.current);
+    return ()=>{o4.disconnect();c4.dispose();}
+  },[])
+
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#F8F5F2' }}>
       <Navbar />
       <Content>
-        <Carousel autoplay effect="fade" style={{ maxHeight: 400, overflow: 'hidden' }}>
+        <Carousel autoplay effect="fade" style={{ height: 400 }}>
           {carouselList.map((item) => (
             <div key={item.id}>
-              <div style={{ background: `url(http://127.0.0.1:8090${item.image_path}) center/cover no-repeat`, height: 400, display: 'flex', alignItems: 'center', padding: '0 10%' }}>
-                <div style={{ background: 'rgba(255, 255, 255, 0.9)', padding: '32px', borderRadius: 8, maxWidth: 600 }}>
-                  <Title level={2} style={{ margin: 0 }}>{item.title}</Title>
-                  <Paragraph style={{ fontSize: 16, marginTop: 16 }}>{item.description}</Paragraph>
-                  <Button type="primary" size="large" style={{ marginTop: 16 }} onClick={() => window.location.href = item.link}>
-                    查看详情 <ArrowRightOutlined />
-                  </Button>
+              <div style={{ height: 400, background: `url(http://127.0.0.1:8090${item.image_path}) center/cover`, display: 'flex', alignItems: 'center', padding: '0 10%' }}>
+                <div style={{ background: 'rgba(255,255,255,0.85)', padding: '32px', borderRadius: 12 }}>
+                  <Title level={2} style={{ color: '#9C706A' }}>{item.title}</Title>
+                  <Paragraph style={{ color: '#665A57' }}>{item.description}</Paragraph>
+                  <Button type="primary" style={{ backgroundColor: '#9C706A', borderColor: '#9C706A', borderRadius:6 }}>查看详情 <ArrowRightOutlined /></Button>
                 </div>
               </div>
             </div>
           ))}
         </Carousel>
 
-        <div style={{ background: 'linear-gradient(135deg, #1a2a3a 0%, #0f1e2e 100%)', color: '#fff', padding: '40px 24px', textAlign: 'center' }}>
-          <Title level={1} style={{ color: '#fff', fontSize: 42, fontWeight: 700, margin: '0 0 8px 0' }}>南侨遗梦</Title>
-          <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 16, letterSpacing: 2 }}>Southern Overseas Dreams</Text>
+        <div style={{ background: 'linear-gradient(135deg, #9C706A 0%, #D39E7A 100%)', color: '#fff', padding: '48px 24px', textAlign: 'center' }}>
+          <Title level={1} style={{ color: '#fff', fontSize: 42, margin:0 }}>南侨遗梦</Title>
+          <Text style={{ opacity: 0.9, fontSize:16 }}>Southern Overseas Dreams</Text>
         </div>
 
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 24px' }}>
-          <Card bordered={false} style={{ marginBottom: 32, borderRadius: 12 }} title={<Space><BookOutlined style={{ fontSize: 18 }} /><span style={{ fontSize: 18, fontWeight: 500 }}>潮汕侨乡</span></Space>}>
-            <Paragraph style={{ fontSize: 15, lineHeight: 1.8 }}>潮汕侨乡地处粤东沿海，主要包括汕头、潮州、揭阳三市，背靠莲花山脉，韩江、榕江、练江三江入海，自古为海上丝绸之路节点；核心出海口有樟林古港（清代粤东第一大港）、汕头港等；地狭人稠、耕地有限，推动潮人“过番”谋生。</Paragraph>
-            <Divider />
-            <Row gutter={24}>
-              <Col xs={24} sm={12} md={6}><Card size="small" hoverable style={{ borderRadius: 8 }} title="揭阳侨乡"><Paragraph style={{ fontSize: 13, lineHeight: 1.7 }}>揭阳是潮汕地区面积较大、侨胞分布极广的侨乡。历史上不少揭阳人从樟林古港、汕头港“过番”下南洋，勤劳打拼。</Paragraph></Card></Col>
-              <Col xs={24} sm={12} md={6}><Card size="small" hoverable style={{ borderRadius: 8 }} title="汕头侨乡"><Paragraph style={{ fontSize: 13, lineHeight: 1.7 }}>汕头是潮汕侨乡的核心城市，也是近代中国重要的移民出海口。1860年开埠后，大量潮人从这里前往东南亚。</Paragraph></Card></Col>
-              <Col xs={24} sm={12} md={6}><Card size="small" hoverable style={{ borderRadius: 8 }} title="潮州侨乡"><Paragraph style={{ fontSize: 13, lineHeight: 1.7 }}>潮州是潮汕文化发源地，也是历史悠久的著名侨乡。海外潮人把潮剧、工夫茶、潮州菜带到世界各地。</Paragraph></Card></Col>
+        <div style={{ maxWidth: 1600, margin: '0 auto', padding: '40px 24px' }}>
+
+          <Card style={{ marginBottom: 32, borderRadius: 16, background: '#F8F5F2', border: 'none', boxShadow: 'none' }}>
+            <Title 
+              level={2} 
+              style={{ 
+                textAlign: 'center', 
+                color: '#9C706A', 
+                marginBottom: 32, 
+                fontSize: 42, 
+                fontWeight: 'bold',
+                fontFamily: "'SimSun', 'Microsoft YaHei', serif",
+                textShadow: '2px 2px 4px rgba(156,112,106,0.3)',
+                letterSpacing: '8px'
+              }}
+            >
+              十大侨乡一览
+            </Title>
+            <div style={{ position: 'relative' }}>
+              <div 
+                ref={sliderRef} 
+                style={{ display: 'flex', gap: 16, overflowX: 'auto', scrollBehavior: 'smooth', padding: '0 20px 20px' }}
+              >
+                {qiaoxiangList.map((item) => (
+                  <div key={item.id} style={{ minWidth: 320, flexShrink: 0, borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: '#fff' }}>
+                    <div style={{ height: 400, background: `url(${item.image}) center/cover`, position: 'relative' }}>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)', padding: '24px 16px 16px' }}>
+                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: 600, display: 'block', marginBottom: 8 }}>{item.title}</Text>
+                        <Text style={{ color: '#fff', fontSize: 16, opacity: 0.9 }}>{item.desc}</Text>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button
+                icon={<LeftOutlined style={{ color: '#fff' }} />}
+                onClick={handlePrev}
+                style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', backgroundColor: '#9C706A', border: 'none', zIndex: 2 }}
+              />
+              <Button
+                icon={<RightOutlined style={{ color: '#fff' }} />}
+                onClick={handleNext}
+                style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', backgroundColor: '#9C706A', border: 'none', zIndex: 2 }}
+              />
+            </div>
+          </Card>
+
+          <Card style={{ marginBottom: 32, borderRadius: 16, background:'#fff', borderColor:'#EAE3DC', boxShadow:'0 4px 20px rgba(0,0,0,0.06)' }}>
+            <Row gutter={22}>
+              <Col xs={24} xl={6}>
+                <Card title="近十年侨胞输出趋势" style={{borderRadius:12,height:320,display:'flex',flexDirection:'column',background:'#fff',borderColor:'#EAE3DC'}} bodyStyle={{flex:1,padding:12}}>
+                  <div ref={chart1} style={{width:'100%',height:'240px'}} />
+                </Card>
+                <div style={{height:16}} />
+                <Card title="主要侨乡输出人数" style={{borderRadius:12,height:320,display:'flex',flexDirection:'column',background:'#fff',borderColor:'#EAE3DC'}} bodyStyle={{flex:1,padding:12}}>
+                  <div ref={chart3} style={{width:'100%',height:'240px'}} />
+                </Card>
+              </Col>
+              
+              <Col xs={24} xl={12}>
+                <div ref={chartRef} style={{ width: '100%', height: '600px' }} />
+              </Col>
+              
+              <Col xs={24} xl={6}>
+                <Card title="全球分布占比" style={{borderRadius:12,height:320,display:'flex',flexDirection:'column',background:'#fff',borderColor:'#EAE3DC'}} bodyStyle={{flex:1,padding:12}}>
+                  <div ref={chart2} style={{width:'100%',height:'240px'}} />
+                </Card>
+                <div style={{height:16}} />
+                <Card title="区域迁徙趋势对比" style={{borderRadius:12,height:320,display:'flex',flexDirection:'column',background:'#fff',borderColor:'#EAE3DC'}} bodyStyle={{flex:1,padding:12}}>
+                  <div ref={chart4} style={{width:'100%',height:'240px'}} />
+                </Card>
+              </Col>
             </Row>
           </Card>
-
-          <Card bordered={false} style={{ marginBottom: 32, borderRadius: 12 }} title={<Space><HistoryOutlined style={{ fontSize: 18 }} /><span style={{ fontSize: 18, fontWeight: 500 }}>核心文化遗产与标志</span></Space>}>
-            <Row gutter={24}>
-              <Col xs={24} sm={8}><Card hoverable size="small" style={{ borderRadius: 8 }}><Title level={5} style={{ margin: 0 }}>红头船</Title><Paragraph style={{ marginTop: 8, fontSize: 13 }}>清代潮籍商船标志性涂装，樟林古港复原船是侨乡精神象征。</Paragraph></Card></Col>
-              <Col xs={24} sm={8}><Card hoverable size="small" style={{ borderRadius: 8 }}><Title level={5} style={{ margin: 0 }}>侨批（银信）</Title><Paragraph style={{ marginTop: 8, fontSize: 13 }}>2013年入选世界记忆遗产，是潮人寄回家乡的汇款+家书。</Paragraph></Card></Col>
-              <Col xs={24} sm={8}><Card hoverable size="small" style={{ borderRadius: 8 }}><Title level={5} style={{ margin: 0 }}>侨宅 / 骑楼</Title><Paragraph style={{ marginTop: 8, fontSize: 13 }}>汕头开埠区、澄海等地留存大量侨资建造的中西合璧建筑。</Paragraph></Card></Col>
-            </Row>
-          </Card>
-
-          <Card bordered={false} style={{ marginBottom: 32, borderRadius: 12 }} title={<Space><CompassOutlined style={{ fontSize: 18 }} /><span style={{ fontSize: 18, fontWeight: 500 }}>十大侨乡一览</span></Space>}>
-            <Row gutter={16}>
-              <Col xs={24} sm={12} md={8}><Card size="small" style={{ borderRadius: 8 }}><Text strong>1 千年古村：</Text><Paragraph style={{ margin: 0, fontSize: 13 }}>濠江区广澳街道东湖社区</Paragraph></Card></Col>
-              <Col xs={24} sm={12} md={8}><Card size="small" style={{ borderRadius: 8 }}><Text strong>2 侨批之乡：</Text><Paragraph style={{ margin: 0, fontSize: 13 }}>潮南区成田镇田中央社区</Paragraph></Card></Col>
-              <Col xs={24} sm={12} md={8}><Card size="small" style={{ borderRadius: 8 }}><Text strong>3 著名侨村：</Text><Paragraph style={{ margin: 0, fontSize: 13 }}>龙湖区外砂街道蓬中村</Paragraph></Card></Col>
-            </Row>
-          </Card>
-
-          <Card bordered={false} style={{ marginBottom: 32, borderRadius: 12 }} title={<Space><EnvironmentOutlined style={{ fontSize: 18 }} /><span style={{ fontSize: 18, fontWeight: 500 }}>樟林古港｜红头船故乡</span></Space>}>
-            <Paragraph style={{ lineHeight: 1.9, fontSize: 15 }}>位于汕头澄海东里镇，唐代为樟树成林的海滨渔村；明嘉靖三十五年（1556）始建樟林寨，万历起成渔埠；2019年列为第九批广东省文物保护单位，占地约2平方千米。<br /><br />康熙二十三年（1684）海禁放宽后快速崛起，乾隆—嘉庆达全盛，称粤东“通洋总汇”，形成六社八街商埠格局，是清代粤东第一大港、红头船（1723年官方定广东商船漆红船头）的核心启航地。</Paragraph>
-            <div style={{ marginTop: 12 }}><Text type="secondary">📍 汕头市澄海区</Text></div>
-          </Card>
-
-          <div style={{ textAlign: 'center', marginTop: 40, marginBottom: 20 }}>
-            <Button danger icon={<LogoutOutlined />} onClick={handleLogout} style={{ borderRadius: 6 }}>退出登录</Button>
-          </div>
         </div>
       </Content>
     </Layout>
   );
 };
 
-export default HomePage;
+export default HomePage

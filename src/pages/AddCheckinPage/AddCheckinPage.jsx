@@ -12,53 +12,46 @@ const AddCheckin = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [uploadLoading, setUploadLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState();
+  const [file, setFile] = useState(null);
 
-  const beforeUpload = (file) => {
-    const isImage = file.type.startsWith('image/');
-    if (!isImage) {
-      message.error('只能上传图片文件');
+  const uploadProps = {
+    listType: 'picture-card',
+    showUploadList: true,
+    beforeUpload: (file) => {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('只能上传图片');
+        return false;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        message.error('2MB以内');
+        return false;
+      }
+      setFile(file);
+      setImageUrl(URL.createObjectURL(file));
       return false;
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error('图片大小不能超过 2MB');
-      return false;
-    }
-    return true;
-  };
-
-  const handleUpload = async (file) => {
-    setUploadLoading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await api.projectApi.uploadCheckinImage(formData);
-      const url = res.data.image;
-      setImageUrl(url);
-      message.success('图片上传成功');
-    } catch (err) {
-      message.error('上传失败');
-    } finally {
-      setUploadLoading(false);
+    },
+    onRemove: () => {
+      setImageUrl(null);
+      setFile(null);
     }
   };
 
-  const onFinish = async (values) => {
-    if (!imageUrl) {
-      message.warning('请上传打卡图片');
-      return;
-    }
-    setLoading(true);
+  const handleSubmit = async (values) => {
     try {
-      await api.projectApi.createCheckin({
-        title: values.title,
-        content: values.content,
-        image: imageUrl,
-        tags: values.tags
-      });
-      message.success('发布打卡成功');
+      setLoading(true);
+      const formData = new FormData();
+      formData.append('title', values.title);
+      formData.append('content', values.content);
+      formData.append('tags', values.tags || '');
+
+      if (file) {
+        formData.append('image', file);
+      }
+
+      await api.projectApi.createCheckin(formData);
+      message.success('发布成功');
       navigate('/visitor/profile');
     } catch (err) {
       message.error('发布失败');
@@ -72,66 +65,37 @@ const AddCheckin = () => {
       <Navbar />
       <Content style={{ padding: '24px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <Button 
-            icon={<LeftOutlined />} 
-            onClick={() => navigate('/user/profile')} 
-            style={{ marginBottom: 16 }}
-          >
-            返回个人中心
+          <Button icon={<LeftOutlined />} onClick={() => navigate('/visitor/profile')} style={{ marginBottom: 16 }}>
+            返回
           </Button>
-          <Title level={2} style={{ marginBottom: 24 }}>发布打卡</Title>
+          <Title level={2}>发布打卡</Title>
           <Card>
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={onFinish}
-            >
-              <Form.Item
-                name="title"
-                label="打卡标题"
-                rules={[{ required: true, message: '请输入打卡标题' }]}
-              >
-                <Input placeholder="请输入打卡标题" />
+            <Form form={form} layout="vertical" onFinish={handleSubmit}>
+              <Form.Item name="title" label="标题" rules={[{ required: true }]}>
+                <Input />
               </Form.Item>
 
-              <Form.Item
-                name="content"
-                label="打卡内容"
-                rules={[{ required: true, message: '请输入打卡内容' }]}
-              >
-                <Input.TextArea rows={4} placeholder="请输入打卡内容" />
+              <Form.Item name="content" label="内容" rules={[{ required: true }]}>
+                <Input.TextArea rows={4} />
               </Form.Item>
 
-              <Form.Item
-                name="tags"
-                label="打卡标签"
-              >
-                <Input placeholder="多个标签用逗号分隔" />
+              <Form.Item name="tags" label="标签">
+                <Input placeholder="逗号分隔" />
               </Form.Item>
 
-              <Form.Item label="打卡图片">
-                <Upload
-                  beforeUpload={beforeUpload}
-                  customRequest={({ file }) => handleUpload(file)}
-                  showUploadList={false}
-                >
-                  <Button icon={<UploadOutlined />} loading={uploadLoading}>
-                    点击上传图片
-                  </Button>
+              <Form.Item label="图片" rules={[{ required: true, message: '请上传图片' }]}>
+                <Upload {...uploadProps}>
+                  {imageUrl ? null : (
+                    <div>
+                      <UploadOutlined />
+                      <div>点击上传</div>
+                    </div>
+                  )}
                 </Upload>
-                {imageUrl && (
-                  <div style={{ marginTop: 16 }}>
-                    <img 
-                      src={`http://127.0.0.1:8090${imageUrl}`} 
-                      style={{ width: 200, height: 200, objectFit: 'cover', borderRadius: 8 }} 
-                      alt="preview"
-                    />
-                  </div>
-                )}
               </Form.Item>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" loading={loading} block>
+                <Button type="primary" htmlType="submit" loading={loading} block style={{ backgroundColor: '#9C706A', borderColor: '#9C706A', color: '#fff' }}>
                   发布打卡
                 </Button>
               </Form.Item>

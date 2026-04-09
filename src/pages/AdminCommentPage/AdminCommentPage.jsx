@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Table, Tag, Space, Button, Typography, message, Popconfirm } from 'antd';
+import { Layout, Table, Tag, Space, Button, Typography, message, Popconfirm, Card } from 'antd';
 import { CheckOutlined, CloseOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../../service/api';
 import Navbar from '../../../public/Nav/nav';
@@ -82,7 +82,8 @@ const AdminCommentPage = () => {
     {
       title: '项目',
       dataIndex: 'project_title',
-      key: 'project_title'
+      key: 'project_title',
+      width: 180
     },
     {
       title: '评论内容',
@@ -93,7 +94,8 @@ const AdminCommentPage = () => {
         }
         return record.content;
       },
-      ellipsis: true
+      ellipsis: true,
+      width: 320
     },
     {
       title: '时间',
@@ -106,12 +108,13 @@ const AdminCommentPage = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: 80,
+      width: 100,
       render: (status) => getStatusTag(status)
     },
     {
       title: '操作',
       key: 'action',
+      width: 260,
       render: (_, record) => (
         <Space size="small">
           {!record.is_delete && (
@@ -139,18 +142,30 @@ const AdminCommentPage = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       <Navbar />
-      <Content style={{ padding: '24px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <Title level={4} style={{ margin: 0 }}>评论管理</Title>
-            <Space>
-              <Button type="primary" disabled={selectedRowKeys.length === 0} onClick={handleBatchPass}>批量通过</Button>
-              <Button danger disabled={selectedRowKeys.length === 0} onClick={handleBatchReject}>批量驳回</Button>
-            </Space>
-          </div>
-          <Table rowSelection={rowSelection} loading={loading} columns={columns} dataSource={data} rowKey="id" pagination={{ pageSize: 10 }} bordered />
+      <Content style={{ padding: '30px 24px' }}>
+        <div style={{ maxWidth: 1600, margin: '0 auto' }}>
+          <Card 
+            style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+            title={<Title level={4} style={{ margin: 0, color: '#9C706A' }}>评论管理</Title>}
+            extra={
+              <Space>
+                <Button type="primary" disabled={selectedRowKeys.length === 0} onClick={handleBatchPass} style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>批量通过</Button>
+                <Button danger disabled={selectedRowKeys.length === 0} onClick={handleBatchReject}>批量驳回</Button>
+              </Space>
+            }
+          >
+            <Table 
+              rowSelection={rowSelection} 
+              loading={loading} 
+              columns={columns} 
+              dataSource={data} 
+              rowKey="id" 
+              pagination={{ pageSize: 10 }} 
+              scroll={{ x: 'auto' }}
+            />
+          </Card>
         </div>
       </Content>
     </Layout>

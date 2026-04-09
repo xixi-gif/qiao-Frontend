@@ -195,12 +195,12 @@ const CheckinDetail = () => {
           <Avatar src={rep.avatar ? fixImg(rep.avatar) : undefined} size={32} />
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: "#1677ff", fontWeight: 500, fontSize: 14 }}>{rep.username}</span>
+              <span style={{ color: '#9C706A', fontWeight: 500, fontSize: 14 }}>{rep.username}</span>
               <span style={{ fontSize: 12, color: "#999" }}>{rep.created_at}</span>
             </div>
             <div style={{ marginTop: 4, color: rep.is_delete ? "#999" : "#333", fontSize: 14 }}>{displayContent}</div>
             <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
-              {!rep.is_delete && <Button type="text" size="small" onClick={() => handleReply(rep.id, rep.username)} style={{ padding: 0, fontSize: 12 }}>回复</Button>}
+              {!rep.is_delete && <Button type="text" size="small" onClick={() => handleReply(rep.id, rep.username)} style={{ padding: 0, fontSize: 12, color:'#9C706A' }}>回复</Button>}
               {isMine && <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => handleDeleteComment(rep.id)} style={{ padding: 0, fontSize: 12 }}>删除</Button>}
             </div>
             {replyId === rep.id && !rep.is_delete && (
@@ -216,7 +216,7 @@ const CheckinDetail = () => {
                     style={{ flex: 1 }}
                   />
                 </div>
-                <Button size="small" type="primary" onClick={() => submitReply(rep.id)} style={{ marginTop: 4 }}>发送</Button>
+                <Button size="small" style={{ marginTop: 4, backgroundColor:'#9C706A',borderColor:'#9C706A',color:'#fff' }} onClick={() => submitReply(rep.id)}>发送</Button>
               </div>
             )}
           </div>
@@ -258,7 +258,7 @@ const CheckinDetail = () => {
 
   if (!exists) {
     return (
-      <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
         <Navbar />
         <Content style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center', color: '#999' }}>
@@ -271,138 +271,137 @@ const CheckinDetail = () => {
     );
   }
 
+  if (loading)
+    return (
+      <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
+        <Navbar />
+        <Content style={{ padding: 24 }}>
+          <Card loading style={{ maxWidth: 1000, margin: "0 auto" }} />
+        </Content>
+      </Layout>
+    );
+
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f9f9' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       <Navbar />
       <Content style={{ padding: '24px' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>返回</Button>
-          <Card loading={loading}>
-            {checkin && (
-              <>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-                  <Avatar size={48} src={fixImg(checkin.avatar)} icon={<UserOutlined />} />
-                  <div style={{ marginLeft: 12 }}>
-                    <div style={{ fontSize: 16, fontWeight: 500 }}>{checkin.username}</div>
-                    <div style={{ fontSize: 12, color: '#999' }}>{checkin.create_time}</div>
-                  </div>
-                  <Button
-                    type="primary"
-                    size="small"
-                    icon={<MessageOutlined />}
-                    onClick={contactAuthor}
-                    style={{ marginLeft: 'auto' }}
-                  >
-                    联系作者
-                  </Button>
-                </div>
+          <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.06)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+              <Avatar size={48} src={fixImg(checkin.avatar)} icon={<UserOutlined />} />
+              <div style={{ marginLeft: 12 }}>
+                <div style={{ fontSize: 16, fontWeight: 500 }}>{checkin.username}</div>
+                <div style={{ fontSize: 12, color: '#999' }}>{checkin.create_time}</div>
+              </div>
+              <Button
+                style={{ marginLeft: 'auto' }}
+                size="small"
+                icon={<MessageOutlined />}
+                onClick={contactAuthor}
+              >
+                联系作者
+              </Button>
+            </div>
 
-                <Title level={4}>{checkin.title}</Title>
-                <Image width="100%" style={{ maxHeight: 500, objectFit: 'cover', borderRadius: 8 }} src={fixImg(checkin.image)} fallback="https://via.placeholder.com/800x500" />
-                
-                <Divider />
+            <Title level={3} style={{ color: "#9C706A" }}>{checkin.title}</Title>
+            <Divider />
+            <Image width="100%" height={400} style={{ objectFit: "cover", borderRadius: 8 }} src={fixImg(checkin.image)} fallback="https://picsum.photos/id/1036/800/400" />
+            <Divider />
 
-                <Descriptions bordered column={1} size="middle">
-                  <Descriptions.Item label="打卡内容">{checkin.content}</Descriptions.Item>
-                  <Descriptions.Item label="打卡标签">
-                    {checkin.tags?.split?.(',').map((t, i) => <Tag key={i}>{t}</Tag>) || '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="浏览量">
-                    <EyeOutlined /> {checkin.view_count}
-                  </Descriptions.Item>
-                </Descriptions>
+            <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
+              <Button icon={<StarOutlined />} style={{ backgroundColor: isFav ? "#9C706A" : "", borderColor: isFav ? "#9C706A" : "", color: isFav ? "#fff" : "" }} onClick={handleFavorite}>收藏 {favCount}</Button>
+              <Button icon={<LikeOutlined />} style={{ backgroundColor: isLiked ? "#9C706A" : "", borderColor: isLiked ? "#9C706A" : "", color: isLiked ? "#fff" : "" }} onClick={handleLike}>点赞 {likeCount}</Button>
+              <Button icon={<MessageOutlined />}>评论 {comments.length}</Button>
+            </div>
+            <Divider />
 
-                <Divider />
+            <Descriptions bordered column={1} size="middle">
+              <Descriptions.Item label="打卡内容">{checkin.content}</Descriptions.Item>
+              <Descriptions.Item label="打卡标签">
+                {(checkin.tags || '').split(',').map((t, i) => (
+                  <Tag key={i} style={{ backgroundColor: "#E1D2B9", color: "#9C706A", border: "none" }}>{t}</Tag>
+                ))}
+              </Descriptions.Item>
+              <Descriptions.Item label="浏览量">
+                <EyeOutlined /> {checkin.view_count}
+              </Descriptions.Item>
+            </Descriptions>
+            <Divider />
 
-                <Space size="large">
-                  <Button type={isFav ? "primary" : "default"} icon={<StarOutlined />} onClick={handleFavorite}>
-                    收藏 {favCount}
-                  </Button>
-                  <Button type={isLiked ? "primary" : "primary"} icon={<LikeOutlined />} onClick={handleLike}>
-                    点赞 {likeCount}
-                  </Button>
-                  <Button icon={<MessageOutlined />}>评论 {comments.length}</Button>
-                </Space>
+            <Title level={5} style={{ color: "#9C706A" }}>评论区</Title>
+            <div style={{ marginBottom: 16, display: "flex", gap: 4, alignItems: "flex-start" }}>
+              <EmojiPicker onSelect={(e) => setCommentText(t => t + e)} />
+              <TextArea
+                rows={4}
+                placeholder="写下你的评论..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <Button style={{ backgroundColor: "#9C706A", borderColor: "#9C706A", color: "#fff" }} onClick={submitComment}>提交评论</Button>
+            </div>
 
-                <Divider />
-
-                <Title level={5}>评论区</Title>
-
-                <div style={{ marginBottom: 16, display: 'flex', gap: 4, alignItems: 'flex-start' }}>
-                  <EmojiPicker onSelect={(e) => setCommentText(t => t + e)} />
-                  <TextArea
-                    rows={4}
-                    placeholder="写下你的评论..."
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    style={{ flex: 1 }}
-                  />
-                  <Button type="primary" style={{ marginTop: 4 }} onClick={submitComment}>提交评论</Button>
-                </div>
-
-                <List
-                  dataSource={mainComments}
-                  renderItem={(item) => {
-                    const allReplies = getAllChildren(item.id);
-                    const isExpanded = expandedMap[item.id];
-                    const showReplies = isExpanded ? allReplies : allReplies.slice(0, 1);
-                    const hiddenCount = allReplies.length - 1;
-                    const isMine = item.user_id === currentUserId;
-                    return (
-                      <List.Item>
-                        <div style={{ display: "flex", gap: 12, width: "100%" }}>
-                          <Avatar src={item.avatar ? fixImg(item.avatar) : undefined} size={40} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <span style={{ color: item.is_delete ? "#999" : "#1677ff", fontWeight: 500, fontSize: 15 }}>{item.username}</span>
-                              <span style={{ fontSize: 12, color: "#999" }}>{item.created_at}</span>
+            <List
+              dataSource={mainComments}
+              renderItem={(item) => {
+                const allReplies = getAllChildren(item.id);
+                const isExpanded = expandedMap[item.id];
+                const showReplies = isExpanded ? allReplies : allReplies.slice(0, 1);
+                const hiddenCount = allReplies.length - 1;
+                const isMine = item.user_id === currentUserId;
+                return (
+                  <List.Item>
+                    <div style={{ display: "flex", gap: 12 }}>
+                      <Avatar src={item.avatar ? fixImg(item.avatar) : undefined} size={40} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span style={{ color: "#9C706A", fontWeight: 500 }}>{item.username}</span>
+                          <span style={{ color: "#999" }}>{item.created_at}</span>
+                        </div>
+                        <div style={{ margin: "4px 0", color: item.is_delete ? "#999" : "#333" }}>
+                          {item.is_delete ? "该评论已删除" : item.content}
+                        </div>
+                        <div style={{ display: "flex", gap: 8 }}>
+                          {!item.is_delete && (
+                            <Button size="small" type="text" onClick={() => handleReply(item.id, item.username)} style={{ color: "#9C706A" }}>回复</Button>
+                          )}
+                          {isMine && (
+                            <Button size="small" type="text" danger onClick={() => handleDeleteComment(item.id)}>删除</Button>
+                          )}
+                        </div>
+                        {replyId === item.id && !item.is_delete && (
+                          <div style={{ marginTop: 8 }}>
+                            <div style={{ display: "flex", gap: 4 }}>
+                              <EmojiPicker onSelect={(e) => setReplyText(t => t + e)} size="small" />
+                              <TextArea
+                                rows={2}
+                                placeholder={`回复 @${replyToName}`}
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                style={{ flex: 1 }}
+                              />
                             </div>
-                            <div style={{ marginTop: 6, color: item.is_delete ? "#bbb" : "#333", fontSize: 14 }}>
-                              {item.is_delete ? "该评论已删除" : item.content}
-                            </div>
-                            <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
-                              {!item.is_delete && <Button type="text" size="small" onClick={() => handleReply(item.id, item.username)} style={{ padding: 0, fontSize: 12 }}>回复</Button>}
-                              {isMine && <Button type="text" danger size="small" icon={<DeleteOutlined />} onClick={() => handleDeleteComment(item.id)} style={{ padding: 0, fontSize: 12 }}>删除</Button>}
-                            </div>
-                            {replyId === item.id && !item.is_delete && (
-                              <div style={{ marginTop: 8 }}>
-                                <div style={{ display: "flex", alignItems: "flex-start", gap: 4 }}>
-                                  <EmojiPicker onSelect={(e) => setReplyText(t => t + e)} size="small" />
-                                  <TextArea
-                                    rows={3}
-                                    size="small"
-                                    placeholder={`回复 @${replyToName}`}
-                                    value={replyText}
-                                    onChange={(e) => setReplyText(e.target.value)}
-                                    style={{ flex: 1 }}
-                                  />
-                                </div>
-                                <Button size="small" type="primary" onClick={() => submitReply(item.id)} style={{ marginTop: 4 }}>发送</Button>
-                              </div>
+                            <Button size="small" style={{ backgroundColor: "#9C706A", borderColor: "#9C706A", color: "#fff" }} onClick={() => submitReply(item.id)}>发送</Button>
+                          </div>
+                        )}
+                        {allReplies.length > 0 && (
+                          <div style={{ marginTop: 8 }}>
+                            {showReplies.map(rep => renderReplyItem(rep))}
+                            {hiddenCount > 0 && !isExpanded && (
+                              <Button type="link" size="small" onClick={() => toggleExpand(item.id)} style={{ color: "#9C706A" }}>展开{hiddenCount}条</Button>
                             )}
-                            {allReplies.length > 0 && (
-                              <>
-                                {showReplies.map(rep => renderReplyItem(rep))}
-                                {hiddenCount > 0 && !isExpanded && (
-                                  <div style={{ paddingLeft: 40, marginTop: 4 }}>
-                                    <Button type="link" size="small" onClick={() => toggleExpand(item.id)}>展开{hiddenCount}条回复</Button>
-                                  </div>
-                                )}
-                                {isExpanded && hiddenCount > 0 && (
-                                  <div style={{ paddingLeft: 40, marginTop: 4 }}>
-                                    <Button type="link" size="small" onClick={() => toggleExpand(item.id)}>收起</Button>
-                                  </div>
-                                )}
-                              </>
+                            {isExpanded && hiddenCount > 0 && (
+                              <Button type="link" size="small" onClick={() => toggleExpand(item.id)} style={{ color: "#9C706A" }}>收起</Button>
                             )}
                           </div>
-                        </div>
-                      </List.Item>
-                    );
-                  }}
-                />
-              </>
-            )}
+                        )}
+                      </div>
+                    </div>
+                  </List.Item>
+                );
+              }}
+            />
           </Card>
         </div>
       </Content>

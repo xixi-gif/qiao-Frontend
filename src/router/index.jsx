@@ -35,6 +35,7 @@ import MarkdownViewerPage from '../pages/MarkdownViewerPage/MarkdownViewerPage';
 import MyFavoritePage from '../pages/MyFavoritePage/MyFavoritePage';
 import DataAnalysis from '../pages/DataAnalysisPage/DataAnalysisPage';
 import DataStatistics from '../pages/DataStatisticsPage/DataStatisticsPage';
+import CulturalGuidePage from '../pages/CulturalGuidePage/CulturalGuidePage';
 
 const AppRoutes = () => {
   return (
@@ -76,6 +77,7 @@ const AppRoutes = () => {
       <Route path="/visitor/collection" element={<MyFavoritePage />} />
       <Route path="/merchant/data-analysis" element={<DataAnalysis />} />
       <Route path="/admin/data-statistics" element={<DataStatistics />} />
+      <Route path="/visitor/cultural-guide" element={<CulturalGuidePage/>} />
 
     </Routes>
   );

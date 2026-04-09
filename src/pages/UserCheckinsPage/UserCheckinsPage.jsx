@@ -84,7 +84,7 @@ const UserCheckinsPage = () => {
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <Button icon={<LeftOutlined />} onClick={() => navigate('/visitor/profile')}>
-              返回个人中心
+              返回
             </Button>
             <Title level={2} style={{ margin: 0 }}>我的全部打卡</Title>
             <div></div>

@@ -18,6 +18,7 @@ const ChatPage = () => {
   const [activeConv, setActiveConv] = useState(null);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [searchKey, setSearchKey] = useState('');
 
   const loadList = async () => {
     try {
@@ -67,17 +68,28 @@ const ChatPage = () => {
 
   const fixImg = (u) => u ? `http://127.0.0.1:8090${u}` : '';
 
+  const filteredConvs = convs.filter(item =>
+    (item.target_name && item.target_name.toLowerCase().includes(searchKey.toLowerCase().trim())) ||
+    (item.last_message && item.last_message.toLowerCase().includes(searchKey.toLowerCase().trim()))
+  );
+
   return (
     <Layout style={{ height: '100vh', background: '#f9f9f9' }}>
       <Navbar />
       <Content style={{ display: 'flex', padding: 0, margin: 0 }}>
         <div style={{ width: 320, borderRight: '1px solid #e5e5e5', background: '#fff', height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
           <div style={{ padding: 16 }}>
-            <Search placeholder="搜索会话" allowClear enterButton={<SearchOutlined />} />
+            <Search 
+              placeholder="搜索会话" 
+              allowClear 
+              enterButton={<SearchOutlined />} 
+              value={searchKey}
+              onChange={(e) => setSearchKey(e.target.value)}
+            />
           </div>
           <List
             loading={loading}
-            dataSource={convs}
+            dataSource={filteredConvs}
             style={{ height: 'calc(100vh - 120px)', overflowY: 'auto' }}
             renderItem={(item) => (
               <List.Item

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Card, Image, Tag, Descriptions, Button, Typography, Divider, Breadcrumb, List, Avatar, Input, message } from "antd";
-import { ArrowLeftOutlined, EyeOutlined, ShoppingCartOutlined, HomeOutlined, StarOutlined, LikeOutlined, MessageOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Layout, Card, Image, Tag, Descriptions, Button, Typography, Divider, List, Avatar, Input, message } from "antd";
+import { ArrowLeftOutlined, EyeOutlined, StarOutlined, LikeOutlined, MessageOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../../public/Nav/nav";
 import api from "../../service/api";
@@ -178,7 +178,7 @@ const TourDetailPage = () => {
           <Avatar src={fixImg(rep.avatar)} size={32} />
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ color: "#1677ff", fontWeight: 500, fontSize: 14 }}>{rep.username}</span>
+              <span style={{ color: "#9C706A", fontWeight: 500, fontSize: 14 }}>{rep.username}</span>
               <span style={{ fontSize: 12, color: "#999" }}>{rep.created_at}</span>
             </div>
             <div style={{ marginTop: 4, color: rep.is_delete ? "#999" : "#333", fontSize: 14 }}>
@@ -186,7 +186,7 @@ const TourDetailPage = () => {
             </div>
             <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
               {!rep.is_delete && (
-                <Button type="text" size="small" onClick={() => handleReply(rep.id, rep.username)}>回复</Button>
+                <Button type="text" size="small" onClick={() => handleReply(rep.id, rep.username)} style={{ color: "#9C706A" }}>回复</Button>
               )}
               {isMine && (
                 <Button type="text" danger size="small" onClick={() => handleDeleteComment(rep.id)}>删除</Button>
@@ -204,7 +204,7 @@ const TourDetailPage = () => {
                     style={{ flex: 1 }}
                   />
                 </div>
-                <Button size="small" type="primary" onClick={() => submitReply(rep.id)}>发送</Button>
+                <Button size="small" style={{ backgroundColor: "#9C706A", borderColor: "#9C706A", color: "#fff" }} onClick={() => submitReply(rep.id)}>发送</Button>
               </div>
             )}
           </div>
@@ -246,7 +246,7 @@ const TourDetailPage = () => {
 
   if (!exists) {
     return (
-      <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f9f9" }}>
+      <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f5f1" }}>
         <Navbar />
         <Content style={{ padding: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: "#999" }}>
@@ -261,7 +261,7 @@ const TourDetailPage = () => {
 
   if (loading)
     return (
-      <Layout style={{ minHeight: "100vh" }}>
+      <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f5f1" }}>
         <Navbar />
         <Content style={{ padding: 24 }}>
           <Card loading style={{ maxWidth: 1000, margin: "0 auto" }} />
@@ -272,41 +272,35 @@ const TourDetailPage = () => {
   const mainComments = comments.filter(c => !c.parent_id);
 
   return (
-    <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f9f9" }}>
+    <Layout style={{ minHeight: "100vh", backgroundColor: "#f9f5f1" }}>
       <Navbar />
       <Content style={{ padding: "24px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <Breadcrumb style={{ marginBottom: 16 }}>
-            <Breadcrumb.Item onClick={() => navigate("/tourism/projects")}>
-              <HomeOutlined /> 首页
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>项目详情</Breadcrumb.Item>
-          </Breadcrumb>
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>返回</Button>
-          <Card>
-            <Card size="small" style={{ backgroundColor: "#fafafa", marginBottom: 16 }}>
+          <Card bordered={false} style={{ borderRadius: 12, boxShadow: "0 1px 8px rgba(0,0,0,0.06)" }}>
+            <Card size="small" style={{ backgroundColor: "#fafafa", marginBottom: 16, border: "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <Image width={64} height={64} style={{ borderRadius: "50%" }} src={fixImg(project.merchant?.avatar)} fallback="https://picsum.photos/id/1005/100/100" />
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 500 }}>{project.merchant?.shopName}</div>
                   <div style={{ color: "#999", fontSize: 12 }}>{project.merchant?.shopAddress}</div>
-                  <Button type="link" style={{ padding: 0, marginTop: 4 }} onClick={() => navigate(`/merchant/user/${project.merchant_id}`)}>查看主页</Button>
+                  <Button type="link" style={{ padding: 0, marginTop: 4, color: "#9C706A" }} onClick={() => navigate(`/merchant/user/${project.merchant_id}`)}>查看主页</Button>
                 </div>
               </div>
             </Card>
-            <Title level={3}>{project.title}</Title>
+            <Title level={3} style={{ color: "#9C706A" }}>{project.title}</Title>
             <Divider />
             <Image width="100%" height={400} style={{ objectFit: "cover", borderRadius: 8 }} src={fixImg(project.cover)} fallback="https://picsum.photos/id/1036/800/400" />
             <Divider />
             <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-              <Button icon={<StarOutlined />} type={isFav ? "primary" : "default"} onClick={handleFavorite}>收藏 {favCount}</Button>
-              <Button icon={<LikeOutlined />} type={isLiked ? "primary" : "default"} onClick={handleLike}>点赞 {likeCount}</Button>
+              <Button icon={<StarOutlined />} style={{ backgroundColor: isFav ? "#9C706A" : "", borderColor: isFav ? "#9C706A" : "", color: isFav ? "#fff" : "" }} onClick={handleFavorite}>收藏 {favCount}</Button>
+              <Button icon={<LikeOutlined />} style={{ backgroundColor: isLiked ? "#9C706A" : "", borderColor: isLiked ? "#9C706A" : "", color: isLiked ? "#fff" : "" }} onClick={handleLike}>点赞 {likeCount}</Button>
               <Button icon={<MessageOutlined />}>评论 {comments.length}</Button>
             </div>
             <Divider />
             <Descriptions bordered column={1} size="middle">
               <Descriptions.Item label="项目分类">{project.category}</Descriptions.Item>
-              <Descriptions.Item label="项目标签">{project.tags && project.tags.split(",").map((t, i) => <Tag key={i}>{t}</Tag>)}</Descriptions.Item>
+              <Descriptions.Item label="项目标签">{project.tags && project.tags.split(",").map((t, i) => <Tag key={i} style={{ backgroundColor: "#E1D2B9", color: "#9C706A", border: "none" }}>{t}</Tag>)}</Descriptions.Item>
               <Descriptions.Item label="项目地址">{project.address}</Descriptions.Item>
               <Descriptions.Item label="开始时间">{project.start_time}</Descriptions.Item>
               <Descriptions.Item label="结束时间">{project.end_time}</Descriptions.Item>
@@ -314,13 +308,12 @@ const TourDetailPage = () => {
               <Descriptions.Item label="最大参与人数">{project.max_people}</Descriptions.Item>
               <Descriptions.Item label="联系电话">{project.contact}</Descriptions.Item>
               <Descriptions.Item label="浏览量"><EyeOutlined /> {project.views}</Descriptions.Item>
-              <Descriptions.Item label="订单量"><ShoppingCartOutlined /> {project.orders}</Descriptions.Item>
             </Descriptions>
             <Divider />
-            <Title level={5}>项目介绍</Title>
+            <Title level={5} style={{ color: "#9C706A" }}>项目介绍</Title>
             <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>{project.description}</div>
             <Divider />
-            <Title level={5}>用户评论</Title>
+            <Title level={5} style={{ color: "#9C706A" }}>用户评论</Title>
             <div style={{ marginBottom: 16, display: "flex", gap: 4, alignItems: "flex-start" }}>
               <EmojiPicker onSelect={(e) => setCommentText(t => t + e)} />
               <TextArea
@@ -330,7 +323,7 @@ const TourDetailPage = () => {
                 onChange={(e) => setCommentText(e.target.value)}
                 style={{ flex: 1 }}
               />
-              <Button type="primary" onClick={submitComment}>提交评论</Button>
+              <Button style={{ backgroundColor: "#9C706A", borderColor: "#9C706A", color: "#fff" }} onClick={submitComment}>提交评论</Button>
             </div>
 
             <List
@@ -350,7 +343,7 @@ const TourDetailPage = () => {
                       <Avatar src={fixImg(item.avatar)} size={40} />
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
-                          <span style={{ color: "#1677ff", fontWeight: 500 }}>{item.username}</span>
+                          <span style={{ color: "#9C706A", fontWeight: 500 }}>{item.username}</span>
                           <span style={{ color: "#999" }}>{item.created_at}</span>
                         </div>
                         <div style={{ margin: "4px 0", color: item.is_delete ? "#999" : "#333" }}>
@@ -358,7 +351,7 @@ const TourDetailPage = () => {
                         </div>
                         <div style={{ display: "flex", gap: 8 }}>
                           {!item.is_delete && (
-                            <Button size="small" type="text" onClick={() => handleReply(item.id, item.username)}>回复</Button>
+                            <Button size="small" type="text" onClick={() => handleReply(item.id, item.username)} style={{ color: "#9C706A" }}>回复</Button>
                           )}
                           {isMine && (
                             <Button size="small" type="text" danger onClick={() => handleDeleteComment(item.id)}>删除</Button>
@@ -377,7 +370,7 @@ const TourDetailPage = () => {
                                 style={{ flex: 1 }}
                               />
                             </div>
-                            <Button size="small" type="primary" onClick={() => submitReply(item.id)}>发送</Button>
+                            <Button size="small" style={{ backgroundColor: "#9C706A", borderColor: "#9C706A", color: "#fff" }} onClick={() => submitReply(item.id)}>发送</Button>
                           </div>
                         )}
 
@@ -385,10 +378,10 @@ const TourDetailPage = () => {
                           <div style={{ marginTop: 8 }}>
                             {showReplies.map(rep => renderReplyItem(rep))}
                             {hiddenCount > 0 && !isExpanded && (
-                              <Button type="link" size="small" onClick={() => toggleExpand(item.id)}>展开{hiddenCount}条</Button>
+                              <Button type="link" size="small" onClick={() => toggleExpand(item.id)} style={{ color: "#9C706A" }}>展开{hiddenCount}条</Button>
                             )}
                             {isExpanded && hiddenCount > 0 && (
-                              <Button type="link" size="small" onClick={() => toggleExpand(item.id)}>收起</Button>
+                              <Button type="link" size="small" onClick={() => toggleExpand(item.id)} style={{ color: "#9C706A" }}>收起</Button>
                             )}
                           </div>
                         )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Space, Tag, Modal, Form, message, Popconfirm, Select, Layout } from 'antd';
+import { Table, Button, Input, Space, Tag, Modal, Form, message, Popconfirm, Select, Layout, Card, Typography } from 'antd';
 import { SearchOutlined, EditOutlined, DeleteOutlined, LockOutlined, UnlockOutlined, DownloadOutlined } from '@ant-design/icons';
 import api from '../../service/api';
 import Navbar from '../../../public/Nav/nav';
@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 const { Content } = Layout;
 const { Search } = Input;
 const { Option } = Select;
+const { Title } = Typography;
 const FormItem = Form.Item;
 
 const UserManagementPage = () => {
@@ -166,7 +167,7 @@ const UserManagementPage = () => {
       render: (r) => <Tag color={userRoleMap[r]?.color}>{userRoleMap[r]?.text}</Tag>,
     },
     { title: '店铺名称', dataIndex: 'shop_name', key: 'shop_name', width: 160, render: t => t || '-' },
-    { title: '店铺地址', dataIndex: 'shop_address', key: 'shop_address', ellipsis: true },
+    { title: '店铺地址', dataIndex: 'shop_address', key: 'shop_address', ellipsis: true, width: 220 },
     {
       title: '状态',
       dataIndex: 'is_active',
@@ -197,24 +198,30 @@ const UserManagementPage = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+    <Layout style={{ minHeight: '100vh', backgroundColor: '#f9f5f1' }}>
       <Navbar />
-      <Content style={{ padding: '16px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Search placeholder="搜索用户名/手机号" allowClear style={{ width: 280 }} onSearch={handleSearch} />
-            <Button icon={<DownloadOutlined />} type="primary" onClick={exportExcel}>导出Excel</Button>
-          </div>
-          <Table
-            size="middle"
-            rowKey="id"
-            loading={loading}
-            columns={columns}
-            dataSource={filteredData}
-            onChange={handleTableChange}
-            pagination={{ pageSize: 10 }}
-            scroll={{ x: 1100 }}
-          />
+      <Content style={{ padding: '30px 24px' }}>
+        <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
+          <Card 
+            style={{ borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}
+            title={<Title level={4} style={{ margin: 0, color: '#9C706A' }}>用户管理</Title>}
+          >
+            <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Search placeholder="搜索用户名/手机号" allowClear style={{ width: 280 }} onSearch={handleSearch} />
+              <Button icon={<DownloadOutlined />} type="primary" onClick={exportExcel} style={{ backgroundColor: '#9C706A', borderColor: '#9C706A' }}>导出Excel</Button>
+            </div>
+            <Table
+              size="middle"
+              rowKey="id"
+              loading={loading}
+              columns={columns}
+              dataSource={filteredData}
+              onChange={handleTableChange}
+              pagination={{ pageSize: 10 }}
+              scroll={{ x: 'auto' }}
+            />
+          </Card>
+
           <Modal title="编辑用户" open={modalVisible} onOk={handleModalOk} onCancel={() => setModalVisible(false)} width={460}>
             <Form form={form} layout="vertical">
               <FormItem name="username" label="用户名"><Input /></FormItem>

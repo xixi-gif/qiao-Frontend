@@ -49,12 +49,17 @@ const ChatDetail = ({ convId, activeConv, refresh }) => {
   }, [convId]);
 
   const send = async () => {
-    if (!content.trim()) return;
+    const msg = content || '';
+    if (!msg.trim()) return;
+    if (!user || !user.id) {
+      message.warning('请先登录');
+      return;
+    }
     try {
       await api.chatApi.sendMessage({
         conversation_id: convId,
         sender_id: user.id,
-        content: content,
+        content: msg,
         msg_type: 'text'
       });
       setContent('');
@@ -65,6 +70,10 @@ const ChatDetail = ({ convId, activeConv, refresh }) => {
   };
 
   const upload = async (file) => {
+    if (!user || !user.id) {
+      message.warning('请先登录');
+      return false;
+    }
     try {
       const fd = new FormData();
       fd.append('file', file);
@@ -94,7 +103,7 @@ const ChatDetail = ({ convId, activeConv, refresh }) => {
   const fix = (u) => u ? `http://127.0.0.1:8090${u}` : null;
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#ebebebe' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#ebebeb' }}>
       <div style={{ padding: '12px 16px', background: '#fff', borderBottom: '1px solid #e5e5e5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Avatar src={fix(activeConv?.target_avatar)} />
@@ -110,7 +119,7 @@ const ChatDetail = ({ convId, activeConv, refresh }) => {
 
       <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
         {msgs.map((m) => {
-          const isMe = m.sender_id === user?.id;
+          const isMe = user && m.sender_id === user.id;
           return (
             <div key={m.id} style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', width: '100%', marginBottom: 16 }}>
               {!isMe && <Avatar src={fix(activeConv?.target_avatar)} style={{ marginRight: 8, width: 36, height: 36 }} />}
@@ -145,7 +154,7 @@ const ChatDetail = ({ convId, activeConv, refresh }) => {
         <EmojiPicker onSelect={onEmoji} />
         <TextArea
           value={content}
-          onChange={(e) => setContent(e.value)}
+          onChange={(e) => setContent(e.target.value)}
           autoSize={{ minRows: 1, maxRows: 4 }}
           placeholder="输入消息..."
           style={{ flex: 1, borderRadius: 20, padding: '10px 16px', background: '#f5f5f5', border: 'none' }}
