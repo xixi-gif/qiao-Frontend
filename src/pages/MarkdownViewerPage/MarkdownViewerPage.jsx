@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Typography, Input, Card, Row, Col, Modal, Spin, Empty, Image, Pagination, Button, message, Drawer, Space } from "antd";
+import { Layout, Typography, Input, Card, Row, Col, Modal, Spin, Empty, Image, Pagination, Button, message, Drawer } from "antd";
 import { StarOutlined, StarFilled, SearchOutlined } from "@ant-design/icons";
 import MDEditor from "@uiw/react-md-editor";
 import api from "../../service/api";
@@ -9,7 +9,6 @@ import { useLocation } from 'react-router-dom';
 
 const { Title } = Typography;
 const { Content } = Layout;
-const { Search } = Input;
 
 const MarkdownViewerPage = () => {
   const location = useLocation();
@@ -30,17 +29,6 @@ const MarkdownViewerPage = () => {
   const [aiQuestion, setAiQuestion] = useState('');
   const [aiAnswer, setAiAnswer] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-
-  const getLocalUserId = () => {
-    let id = localStorage.getItem("user_id");
-    if (!id) {
-      id = Math.floor(Math.random() * 10000) + 2;
-      localStorage.setItem("user_id", id);
-    }
-    return parseInt(id);
-  };
-
-  const userId = getLocalUserId();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -69,13 +57,6 @@ const MarkdownViewerPage = () => {
     };
   }, [viewMode]);
 
-  const loadFavoriteIds = async () => {
-    try {
-      const res = await api.markdownApi.getMyFavoriteIds(userId);
-      setFavoriteIds(res.data.ids || []);
-    } catch (err) {}
-  };
-
   const loadList = async () => {
     setLoading(true);
     try {
@@ -88,6 +69,13 @@ const MarkdownViewerPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadFavoriteIds = async () => {
+    try {
+      const res = await api.markdownApi.getMyFavoriteIds();
+      setFavoriteIds(res.data.ids || []);
+    } catch (err) {}
   };
 
   const loadKnowledgeGraph = async () => {
@@ -175,7 +163,7 @@ const MarkdownViewerPage = () => {
   const toggleFavorite = async (docId, e) => {
     e.stopPropagation();
     try {
-      const res = await api.markdownApi.toggleFavorite(docId, userId);
+      const res = await api.markdownApi.toggleFavorite(docId);
       if (res.data.action === "favorite") {
         setFavoriteIds([...favoriteIds, docId]);
         message.success("收藏成功");
@@ -184,7 +172,7 @@ const MarkdownViewerPage = () => {
         message.success("已取消收藏");
       }
     } catch (err) {
-      message.error("操作失败");
+      message.warning("请先登录");
     }
   };
 
@@ -236,9 +224,8 @@ const MarkdownViewerPage = () => {
                 知识图谱
               </Button>
               <Button 
-                type={aiDrawerVisible ? 'primary' : 'default'} 
                 onClick={() => setAiDrawerVisible(true)} 
-                style={aiDrawerVisible ? { backgroundColor: "#9C706A", borderColor: "#9C706A" } : { color: "#9C706A" }}
+                style={{ color: "#9C706A" }}
               >
                 🌍 开启智慧问答模式
               </Button>
@@ -338,7 +325,6 @@ const MarkdownViewerPage = () => {
             onCancel={() => setVisible(false)} 
             width={900} 
             footer={null} 
-            destroyOnClose
           >
             <div style={{ fontSize: "14px", lineHeight: "1.6", maxHeight: "70vh", overflow: "auto", padding: "10px 14px" }}>
               <style>{` .wmde-markdown img { max-width: 100% !important; height: auto !important; display: block; margin: 10px 0; } .wmde-markdown { font-size: 15px !important; line-height: 1.6 !important; color: #7d5c58; } .wmde-markdown h1 { font-size: 22px !important; color: #9C706A; } .wmde-markdown h2 { font-size: 19px !important; color: #9C706A; } .wmde-markdown h3 { font-size: 17px !important; color: #9C706A; } `}</style>

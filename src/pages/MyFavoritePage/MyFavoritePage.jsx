@@ -15,21 +15,10 @@ const MyFavoritePage = () => {
   const [currentDoc, setCurrentDoc] = useState(null);
   const [searchKey, setSearchKey] = useState('');
 
-  const getLocalUserId = () => {
-    let id = localStorage.getItem("user_id");
-    if (!id) {
-      id = Math.floor(Math.random() * 10000) + 2;
-      localStorage.setItem("user_id", id);
-    }
-    return parseInt(id);
-  };
-
-  const userId = getLocalUserId();
-
   const loadMyFavorites = async () => {
     setLoading(true);
     try {
-      const res = await api.markdownApi.getMyFavorites(userId);
+      const res = await api.markdownApi.getMyFavorites();
       setList(res.data || []);
     } catch (err) {
     } finally {
@@ -39,11 +28,11 @@ const MyFavoritePage = () => {
 
   const unfavorite = async (docId) => {
     try {
-      await api.markdownApi.toggleFavorite(docId, userId);
+      await api.markdownApi.toggleFavorite(docId);
       message.success("已取消收藏");
       loadMyFavorites();
     } catch (err) {
-      message.error("操作失败");
+      message.warning("请先登录");
     }
   };
 
@@ -75,7 +64,6 @@ const MyFavoritePage = () => {
               <Button
                 size="large"
                 style={{ backgroundColor: "#9C706A", color: "#fff", borderColor: "#9C706A" }}
-                onClick={() => {}}
               >
                 检索
               </Button>
